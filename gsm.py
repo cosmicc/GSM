@@ -1,29 +1,32 @@
-import sqlite3
-import RPi.GPIO as GPIO, time, os, sys
-from statistics import mean
-from timeit import default_timer as timer
-from datetime import datetime, time
-from time import sleep
-from timebetween import is_time_between
-import threading
-from web import web
 import argparse
-from modules.rpiboard import cpu_temp, Led
-from modules.extras import float_trunc_1dec
-import Adafruit_DHT
-from loguru import logger as log
-from sms import sendsms
+import sqlite3
+import sys
+import threading
+from datetime import datetime, time
+from statistics import mean
+from time import sleep
+from timeit import default_timer as timer
 
-IN_RC= 17       #Input pin
+import Adafruit_DHT
+import RPi.GPIO as GPIO
+from loguru import logger as log
+from modules.extras import float_trunc_1dec, c2f
+from modules.rpiboard import Led, cpu_temp
+from sms import sendsms
+from timebetween import is_time_between
+from web import web
+
+IN_RC = 17       # Input pin
 
 GPIO.setmode(GPIO.BCM)
+
+logfile = '/var/log/gsm.log'
 
 boardled = Led('status')
 boardled.ledoff()
 
 parser = argparse.ArgumentParser(prog='GSM')
-parser.add_argument('-c', '--console', action='store_true',
-                    help='supress logging output to console. default: error logging')
+parser.add_argument('-c', '--console', action='store_true', help='supress logging output to console. default: error logging')
 parser.add_argument('-d', '--debug', action='store_true', help='extra verbose output (debug)')
 parser.add_argument('-i', '--info', action='store_true', help='verbose output (info)')
 args = parser.parse_args()
@@ -91,7 +94,7 @@ class tempSensor():
                 else:
                     log.error(f'Invalid temp units in config file {self.units}')
                 self.humidity = float_trunc_1dec(hum)
-                #print(self.temp, self.humidity)
+                # print(self.temp, self.humidity)
                 return (self.temp, self.humidity)
                 log.debug(f'Tempurature={self.temp}*{self.units}  Humidity={self.humidity}%')
             else:
@@ -100,6 +103,7 @@ class tempSensor():
 
 def normalizeit(value):
     return (0 + (100 - 0) * ((value - 250000) / (0 - 250000)))
+
 
 def pc_read(RCpin):
         reading = 0
@@ -112,6 +116,7 @@ def pc_read(RCpin):
         while (GPIO.input(RCpin) == GPIO.LOW):
             reading += 1
         return reading
+
 
 onalarm = timer() - 3600
 offalarm = timer() - 3600
@@ -135,46 +140,44 @@ while True:
         db = sqlite3.connect('/var/opt/lightdata.db')
         cursor = db.cursor()
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-        cursor.execute('''INSERT INTO data(timestamp, light, temp, humidity) VALUES (?,?,?,?)''', (timestamp,light,temp,humidity))
+        cursor.execute('''INSERT INTO data(timestamp, light, temp, humidity) VALUES (?,?,?,?)''', (timestamp, light, temp, humidity))
         db.commit()
         db.close()
-        if is_time_between(datetime.now().time(), time(17, 15), time(5, 30)) and light > 100000: # on light time
+        if is_time_between(datetime.now().time(), time(17, 15), time(5, 30)) and light > 100000:  # on light time
             if timer() - onalarm > 3600:
                 onalarm = timer()
                 log.warning(f'ALARM: Lights should be on but are NOT ON lightvalue: {light} ({nlight}/100)')
                 db = sqlite3.connect('/var/opt/lightdata.db')
                 cursor = db.cursor()
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-                cursor.execute('''INSERT INTO alarms(timestamp, light, type) VALUES (?,?,?)''', (timestamp,light,'not-on'))
+                cursor.execute('''INSERT INTO alarms(timestamp, light, type) VALUES (?,?,?)''', (timestamp, light, 'not-on'))
                 db.commit()
                 db.close()
-                #sendsms(f'ALARM: Lights should be on but are NOT ON lightvalue: {light} ({nlight}/100)')
-        elif is_time_between(datetime.now().time(), time(18, 30), time(4, 50)) and light > 5000: # on hid light time
+                # sendsms(f'ALARM: Lights should be on but are NOT ON lightvalue: {light} ({nlight}/100)')
+        elif is_time_between(datetime.now().time(), time(18, 30), time(4, 50)) and light > 5000:  # on hid light time
             if timer() - onalarm > 3600:
                 onalarm = timer()
                 log.warning(f'ALARM: Lights are on but weak. lightvalue: {light} ({nlight}/100)')
                 db = sqlite3.connect('/var/opt/lightdata.db')
                 cursor = db.cursor()
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-                cursor.execute('''INSERT INTO alarms(timestamp, light, type) VALUES (?,?,?)''', (timestamp,light,'weak'))
+                cursor.execute('''INSERT INTO alarms(timestamp, light, type) VALUES (?,?,?)''', (timestamp, light, 'weak'))
                 db.commit()
                 db.close()
-                #sendsms(f'ALARM: Lights are on but WEAK. lightvalue: {light} ({nlight}/100)')
-        elif is_time_between(datetime.now().time(), time(6, 20), time(16, 50)) and light < 100000: # off light time
+                # sendsms(f'ALARM: Lights are on but WEAK. lightvalue: {light} ({nlight}/100)')
+        elif is_time_between(datetime.now().time(), time(6, 20), time(16, 50)) and light < 100000:  # off light time
             if timer() - offalarm > 3600:
                 offalarm = timer()
                 log.warning(f'ALARM: Lights should be off but ARE STILL ON lightvalue: {light} ({nlight}/100)')
                 db = sqlite3.connect('/var/opt/lightdata.db')
                 cursor = db.cursor()
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-                cursor.execute('''INSERT INTO alarms(timestamp, light, type) VALUES (?,?,?)''', (timestamp,light,'not-off'))
+                cursor.execute('''INSERT INTO alarms(timestamp, light, type) VALUES (?,?,?)''', (timestamp, light, 'not-off'))
                 db.commit()
                 db.close()
-                #sendsms(f'ALARM: Lights should be off but ARE STILL ON lightvalue: {light} ({nlight}/100)')
+                # sendsms(f'ALARM: Lights should be off but ARE STILL ON lightvalue: {light} ({nlight}/100)')
     except KeyboardInterrupt:
         log.critical(f'Keyboard Interrupt')
         exit(0)
     except:
         log.critical(f'Critical Error')
-
-        #print(f'{timestamp} - {light} ({nlight}/100) cpu: {cpu_temp()}')

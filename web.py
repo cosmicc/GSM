@@ -1,13 +1,15 @@
-from flask import Flask, render_template, url_for, redirect
-from loguru import logger as log
 import logging
-#import pandas as pd
+# import pandas as pd
 import sqlite3
+
+from flask import Flask, redirect, render_template, url_for
+from loguru import logger as log
 
 app = Flask(__name__)
 app.logger.disabled = True
 loggs = logging.getLogger('werkzeug')
-#loggs.addHandler(logging.FileHandler('/var/log/access.log'))
+# loggs.addHandler(logging.FileHandler('/var/log/access.log'))
+
 
 @log.catch
 def dbupdate(cmd):
@@ -68,12 +70,13 @@ def index():
     try:
         livedata = dbselect('''SELECT timestamp, light, temp, humidity FROM data ORDER BY id DESC LIMIT 1''', fetchall=False)
         alarmdata = dbselect('''SELECT timestamp, light, type FROM alarms ORDER BY id DESC LIMIT 10''', fetchall=True)
-        #print(livedata)
+        # print(livedata)
         b = 0 + (100 - 0) * ((livedata[1] - 250000) / (0 - 250000))
         return render_template('index.html', timestamp=livedata[0], light=f'{livedata[1]:,d}', light2=int(b), temp=livedata[2], humidity=livedata[3], alarms=alarmdata)
     except:
         log.crtitical(f'Error in web index generation')
         return 'Error', 400
+
 
 @log.catch
 @app.route('/stats')
@@ -87,6 +90,7 @@ def _clearalaarms():
     dbupdate('''DELETE from alarms''')
     return redirect(url_for('index'))
 
+
 @log.catch
 def web():
-	app.run(host='0.0.0.0', port=80)
+    app.run(host='0.0.0.0', port=80)

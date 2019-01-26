@@ -1,6 +1,8 @@
 import subprocess
-from time import sleep
 
+
+def c2f(c):
+    return float_trunc_1dec((c * 9 / 5) + 32)
 
 
 def float_trunc_1dec(num):
