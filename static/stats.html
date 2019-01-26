@@ -1,0 +1,73 @@
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js"></script>
+       <script>
+        function updatechart(chart, chartdata) {
+            var ctx = document.getElementById(chart).getContext('2d');
+            var cdates = chartdata.dates;
+            var cvalues = chartdata.values;
+            var myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: cdates,
+                datasets: [{
+                    label: 'Avg # of Players',
+                    data: cvalues,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255,99,132,1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero:true
+                        }
+                    }]
+                }
+            }
+        })
+        };
+        function loadchartdata(){
+            {% set last24date, last24value = ui_last24avg(inst,'chart1') %}
+            var chartdata = {
+                dates: {{ last24date|tojson }},
+                values: {{ last24value|tojson }}
+            };
+            updatechart("chart1", chartdata);
+            {% set last24date, last24value = ui_last24avg(inst,'chart2') %}
+            var chartdata = {
+                dates: {{ last24date|tojson }},
+                values: {{ last24value|tojson }}
+            };
+            updatechart("chart2", chartdata);
+            {% set last24date, last24value = ui_last24avg(inst,'chart3') %}
+            var chartdata = {
+                dates: {{ last24date|tojson }},
+                values: {{ last24value|tojson }}
+            };
+            updatechart("chart3", chartdata);
+        };
+        setInterval(function(){
+            loadchartdata()
+            starttimer()
+        }, 300000);
+        window.onload = loadchartdata;
+        </script>
+
+<div class="container is-mobile left-pad right-pad top-pad-5">
+       <canvas id="chart1" width="200" height="100"></canvas>
+</div>

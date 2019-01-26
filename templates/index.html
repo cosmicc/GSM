@@ -1,0 +1,8 @@
+<html>
+<p>Lightvalue:  0 = Bright, 300,000+ = Pitch Black</p>
+<h1>{{ livedata }}</h1>
+<h2>Alarms:</h2>
+{% for each in alarms %}
+<p>{{ each[0] }} - Lightvalue: {{ each[1] }} - Alarm: {{ each[2] }}</p>
+{% endfor %}
+</html>
