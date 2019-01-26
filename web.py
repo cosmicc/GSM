@@ -6,31 +6,38 @@ from flask import Flask, redirect, render_template, url_for
 from loguru import logger as log
 
 app = Flask(__name__)
-app.logger.disabled = True
 loggs = logging.getLogger('werkzeug')
+# app.logger.disabled = True
 # loggs.addHandler(logging.FileHandler('/var/log/access.log'))
 
 
 @log.catch
 def dbupdate(cmd):
-    db = sqlite3.connect('/var/opt/lightdata.db')
-    cursor = db.cursor()
-    cursor.execute(cmd)
-    db.commit()
-    db.close()
+    try:
+        db = sqlite3.connect('/var/opt/lightdata.db')
+        cursor = db.cursor()
+        cursor.execute(cmd)
+        db.commit()
+        db.close()
+    except:
+        log.exception('Error updating DB')
 
 
 @log.catch
 def dbselect(cmd, fetchall=True):
-    db = sqlite3.connect('/var/opt/lightdata.db')
-    cursor = db.cursor()
-    cursor.execute(cmd)
-    if not fetchall:
-        a = cursor.fetchone()
+    try:
+        db = sqlite3.connect('/var/opt/lightdata.db')
+        cursor = db.cursor()
+        cursor.execute(cmd)
+        if fetchall == False:
+            a = cursor.fetchone()
+        else:
+            a = cursor.fetchall()
+        db.close()
+    except:
+        log.exception('Error querying DB')
     else:
-        a = cursor.fetchall()
-    db.close()
-    return a
+        return a
 
 
 @log.catch
@@ -69,12 +76,12 @@ def _statpull():
 def index():
     try:
         livedata = dbselect('''SELECT timestamp, light, temp, humidity FROM data ORDER BY id DESC LIMIT 1''', fetchall=False)
-        alarmdata = dbselect('''SELECT timestamp, light, type FROM alarms ORDER BY id DESC LIMIT 10''', fetchall=True)
+        alarmdata = dbselect('''SELECT timestamp, value, type FROM alarms ORDER BY id DESC LIMIT 10''', fetchall=True)
         # print(livedata)
         b = 0 + (100 - 0) * ((livedata[1] - 250000) / (0 - 250000))
         return render_template('index.html', timestamp=livedata[0], light=f'{livedata[1]:,d}', light2=int(b), temp=livedata[2], humidity=livedata[3], alarms=alarmdata)
     except:
-        log.crtitical(f'Error in web index generation')
+        log.exception(f'Error in web index generation')
         return 'Error', 400
 
 
