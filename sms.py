@@ -21,7 +21,9 @@ def sendsms(msg):
                          from_='+19472829318',
                          to='+13132361408'
                      )
-        return True
     except:
-        log.error(f'Error sending SMS')
+        log.exception(f'Error sending SMS: {msg}')
         return False
+    else:
+        log.info(f'SMS Sent Successfully: {msg}')
+        return True
