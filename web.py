@@ -1,9 +1,37 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, url_for, redirect
+from loguru import logger as log
+import logging
 #import pandas as pd
 import sqlite3
 
 app = Flask(__name__)
+app.logger.disabled = True
+loggs = logging.getLogger('werkzeug')
+#loggs.addHandler(logging.FileHandler('/var/log/access.log'))
 
+@log.catch
+def dbupdate(cmd):
+    db = sqlite3.connect('/var/opt/lightdata.db')
+    cursor = db.cursor()
+    cursor.execute(cmd)
+    db.commit()
+    db.close()
+
+
+@log.catch
+def dbselect(cmd, fetchall=True):
+    db = sqlite3.connect('/var/opt/lightdata.db')
+    cursor = db.cursor()
+    cursor.execute(cmd)
+    if not fetchall:
+        a = cursor.fetchone()
+    else:
+        a = cursor.fetchall()
+    db.close()
+    return a
+
+
+@log.catch
 @app.context_processor
 def _statpull():
     def ui_last24avg(inst, dtype):
@@ -34,21 +62,31 @@ def _statpull():
     return dict(ui_last24avg=ui_last24avg)
 
 
+@log.catch
 @app.route("/")
 def index():
-    db = sqlite3.connect('/var/opt/lightdata.db')
-    cursor = db.cursor()
-    cursor.execute('''SELECT timestamp, light, temp, humidity FROM data ORDER BY id DESC LIMIT 1''')
-    a = cursor.fetchone()
-    cursor.execute('''SELECT timestamp, light, type FROM alarms ORDER BY id DESC LIMIT 10''')
-    d = cursor.fetchall()
-    db.close()
-    b = 0 + (100 - 0) * ((a[1] - 250000) / (0 - 250000))
-    return render_template('index.html', livedata=f'{a[0]} - Light: {a[1]:,d} ({int(b)}/100)  Temp: {a[2]}C  Humidity: {a[3]}%', alarms=d)
+    try:
+        livedata = dbselect('''SELECT timestamp, light, temp, humidity FROM data ORDER BY id DESC LIMIT 1''', fetchall=False)
+        alarmdata = dbselect('''SELECT timestamp, light, type FROM alarms ORDER BY id DESC LIMIT 10''', fetchall=True)
+        #print(livedata)
+        b = 0 + (100 - 0) * ((livedata[1] - 250000) / (0 - 250000))
+        return render_template('index.html', timestamp=livedata[0], light=f'{livedata[1]:,d}', light2=int(b), temp=livedata[2], humidity=livedata[3], alarms=alarmdata)
+    except:
+        log.crtitical(f'Error in web index generation')
+        return 'Error', 400
 
+@log.catch
 @app.route('/stats')
-def _stats(inst):
+def _stats():
     return render_template('stats.html')
 
+
+@log.catch
+@app.route('/clearalarms')
+def _clearalaarms():
+    dbupdate('''DELETE from alarms''')
+    return redirect(url_for('index'))
+
+@log.catch
 def web():
 	app.run(host='0.0.0.0', port=80)
