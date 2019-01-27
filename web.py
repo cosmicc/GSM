@@ -4,6 +4,7 @@ import sqlite3
 
 from flask import Flask, redirect, render_template, url_for
 from loguru import logger as log
+from modules.extras import f2c
 
 app = Flask(__name__)
 loggs = logging.getLogger('werkzeug')
@@ -79,7 +80,7 @@ def index():
         alarmdata = dbselect('''SELECT timestamp, value, type FROM alarms ORDER BY id DESC LIMIT 10''', fetchall=True)
         # print(livedata)
         b = 0 + (100 - 0) * ((livedata[1] - 250000) / (0 - 250000))
-        return render_template('index.html', timestamp=livedata[0], light=f'{livedata[1]:,d}', light2=int(b), temp=livedata[2], humidity=livedata[3], alarms=alarmdata)
+        return render_template('index.html', timestamp=livedata[0], light=f'{livedata[1]:,d}', light2=int(b), temp=livedata[2], temp2=f2c(livedata[2]), humidity=livedata[3], alarms=alarmdata)
     except:
         log.exception(f'Error in web index generation')
         return 'Error', 400

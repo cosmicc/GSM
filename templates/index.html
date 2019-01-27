@@ -1,7 +1,7 @@
 <html>
 <p>Lightvalue:  0 = Bright  -  300,000+ = Pitch Black</p>
 <font face="helvetica">
-<h1>{{ timestamp }}<br>Light: {{ light }} ({{ light2 }}/100)<br>Temp: {{ temp }}&#176;C<br>Humidity: {{ humidity }}%</h1>
+<h1>{{ timestamp }}<br>Light: {{ light }} ({{ light2 }}/100)<br>Temp: {{ temp }}&#176;F ({{ temp2 }}}&#176;C)<br>Humidity: {{ humidity }}%</h1>
 <h2>Alarms:</h2>
 {% for each in alarms %}
 <p>{{ each[0] }}<br>Alarm Reason: {{ each[2].upper() }}<br>Value: {{ each[1] }}</p>
