@@ -1,43 +1,84 @@
-#!/usr/bin/env python
-"""
-moonphase.py - Calculate Lunar Phase
-Author: Sean B. Palmer, inamidst.com
-Cf. http://en.wikipedia.org/wiki/Lunar_phase#Lunar_phase_calculation
-"""
+from datetime import datetime
+import ephem
 
-import math, decimal, datetime
-dec = decimal.Decimal
 
-def position(now=None): 
-   if now is None: 
-      now = datetime.datetime.now()
+class astralData():
+    def __init__(self):
+        self.moondata = {}
+        self.seasondata = {}
+        self.currentphase = []
+        self.nextphase = []
+        self.currentseason = []
+        self.nextseason = []
 
-   diff = now - datetime.datetime(2001, 1, 1)
-   days = dec(diff.days) + (dec(diff.seconds) / dec(86400))
-   lunations = dec("0.20439731") + (days * dec("0.03386319269"))
+    def update(self):
+        date = ephem.Date(datetime.now().date())
+        self.seasondata.update({'Autumnal (Fall) Equinox': ephem.next_autumn_equinox(date).datetime().date()})
+        self.moondata.update({'First Quarter Moon': ephem.next_first_quarter_moon(date).datetime().date()})
+        self.moondata.update({'Full Moon': ephem.next_full_moon(date).datetime().date()})
+        self.moondata.update({'Last Quarter Moon': ephem.next_last_quarter_moon(date).datetime().date()})
+        self.moondata.update({'New Moon': ephem.next_new_moon(date).datetime().date()})
+        self.seasondata.update({'Vernal (Spring) Equinox': ephem.next_spring_equinox(date).datetime().date()})
+        self.seasondata.update({'Summer Solstice': ephem.next_summer_solstice(date).datetime().date()})
+        self.seasondata.update({'Winter Solstice': ephem.next_winter_solstice(date).datetime().date()})
+        moon_keys = sorted(self.moondata.keys(), key=lambda y: (self.moondata[y]))
+        moon_keys.reverse()
+        b = {}
+        state1 = True
+        while moon_keys:
+            a = moon_keys.pop()
+            b.update({a: self.moondata[a]})
+            if self.moondata[a] != datetime.now().date() and state1:
+                self.nextphase = [a, self.moondata[a], daysaway(self.moondata[a])]
+                state1 = False
+                if self.moondata[a] == datetime.now().date():
+                    self.currentphase = a
+                elif  
+        self.moondata = b
+        season_keys = sorted(self.seasondata.keys(), key=lambda y: (self.seasondata[y]))
+        season_keys.reverse()
+        b = {}
+        state2 = True
+        while season_keys:
+            a = season_keys.pop()
+            b.update({a: self.seasondata[a]})
+            if self.seasondata[a] != datetime.now().date() and state2:
+                self.nextseason = [a, self.seasondata[a], daysaway(self.seasondata[a])]
+                state2 = False
+        self.seasondata = b
+        if self.nextphase[0] == 'Last Quarter Moon' and datetime.now().date() < self.nextphase[1]:
+            self.currentphase = 'Waning Gibbus Moon'
+        if self.nextphase[0] == 'Last Quarter Moon' and datetime.now().date() == self.nextphase[1]:
+            self.currentphase = 'Last Quarter Moon'
+        if self.nextphase[0] == 'New Moon' and datetime.now().date() < self.nextphase[1]:
+            self.currentphase = 'Waning Crescent Moon'
+        if self.nextphase[0] == 'New Moon' and datetime.now().date() == self.nextphase[1]:
+            self.currentphase = 'New Moon'
+        if self.nextphase[0] == 'First Quarter Moon' and datetime.now().date() < self.nextphase[1]:
+            self.currentphase = 'Waxing Crescent Moon'
+        if self.nextphase[0] == 'First Quarter Moon' and datetime.now().date() == self.nextphase[1]:
+            self.currentphase = 'First Quarter Moon'
+        if self.nextphase[0] == 'Full Moon' and datetime.now().date() < self.nextphase[1]:
+            self.currentphase = 'Waxing Gibbus Moon'
+        if self.nextphase[0] == 'Full Moon' and datetime.now().date() == self.nextphase[1]:
+            self.currentphase = 'Full Moon'
 
-   return lunations % dec(1)
 
-def phase(pos): 
-   index = (pos * dec(8)) + dec("0.5")
-   index = math.floor(index)
-   return {
-      0: "New Moon", 
-      1: "Waxing Crescent", 
-      2: "First Quarter", 
-      3: "Waxing Gibbous", 
-      4: "Full Moon", 
-      5: "Waning Gibbous", 
-      6: "Last Quarter", 
-      7: "Waning Crescent"
-   }[int(index) & 7]
+def daysaway(ndate):
+    return (ndate - datetime.now().date()).days
 
-def main(): 
-   pos = position()
-   phasename = phase(pos)
 
-   roundedpos = round(float(pos), 3)
-   print(f"{phasename} ({roundedpos})")
+#astdata = astralData()
+#astdata.update()
 
-if __name__=="__main__": 
-   main()
+#while moon_keys:
+#    a = moon_keys.pop()
+#    print(f'{a} {moondata[a]} {daysaway(moondata[a])} Days away')
+
+#for each in range(1):
+#    a = season_keys.pop()
+#    print(f'{a} {seasondata[a]} {daysaway(seasondata[a])} Days away')
+
+#print(astdata.currentphase)
+#print(astdata.nextphase)
+#print(astdata.moondata)
