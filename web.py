@@ -4,7 +4,8 @@ import sqlite3
 
 from flask import Flask, redirect, render_template, url_for
 from loguru import logger as log
-from modules.extras import f2c, get_wifi_info
+from modules.extras import f2c
+from modules.rpiboard import get_wifi_info
 from moon import astralData
 
 app = Flask(__name__)
