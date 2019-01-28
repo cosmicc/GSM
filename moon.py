@@ -33,7 +33,7 @@ class astralData():
                 state1 = False
                 if self.moondata[a] == datetime.now().date():
                     self.currentphase = a
-                elif  
+                ##### elif  
         self.moondata = b
         season_keys = sorted(self.seasondata.keys(), key=lambda y: (self.seasondata[y]))
         season_keys.reverse()

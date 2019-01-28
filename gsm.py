@@ -1,6 +1,7 @@
 import argparse
 import sqlite3
 import sys
+import os
 import threading
 from datetime import datetime, time
 from statistics import mean
@@ -30,6 +31,7 @@ parser = argparse.ArgumentParser(prog='GSM')
 parser.add_argument('-c', '--console', action='store_true', help='supress logging output to console. default: error logging')
 parser.add_argument('-d', '--debug', action='store_true', help='extra verbose output (debug)')
 parser.add_argument('-i', '--info', action='store_true', help='verbose output (info)')
+parser.add_argument('-r', '--reset', action='store_true', help='reset database')
 args = parser.parse_args()
 
 if args.debug:
@@ -50,21 +52,63 @@ else:
                   dict(sink=logfile, level="INFO", enqueue=True, serialize=False, rotation="1 MB", retention="14 days", compression="gz")],
                   levels=[dict(name="STARTUP", no=38, icon="¤", color="<yellow>")], extra={"common_to_all": "default"}, activation=[("my_module.secret", False), ("another_library.module", True)])
 
-
-
-
 log.log('STARTUP', 'GSM is starting up')
 
+if args.reset:
+   os.remove("/var/opt/lightdata.db")
+
+#mdb = sqlite3.connect("file::memory:?cache=shared", uri=True)
 db = sqlite3.connect('/var/opt/lightdata.db')
 cursor = db.cursor()
+#mcursor = mdb.cursor()
+#mcursor.execute('CREATE TABLE general(id INTEGER PRIMARY KEY, name TEXT, timestamp TEXT, light INTEGER, temp REAL, humidity REAL)')
 cursor.execute('CREATE TABLE IF NOT EXISTS alarms(id INTEGER PRIMARY KEY, timestamp TEXT, value INTEGER, type TEXT)')
 cursor.execute('CREATE TABLE IF NOT EXISTS data(id INTEGER PRIMARY KEY, timestamp TEXT, light INTEGER, temp REAL, humidity REAL)')
+cursor.execute('CREATE TABLE IF NOT EXISTS general(id INTEGER PRIMARY KEY, name TEXT, timestamp TEXT, light INTEGER, temp REAL, humidity REAL)')
+#mcursor.execute('INSERT INTO general (name) VALUES ("lastdata")')
+if args.reset:
+    cursor.execute('INSERT INTO general (name) VALUES ("laston")')
+    cursor.execute('INSERT INTO general (name) VALUES ("lastoff")')
+    cursor.execute('INSERT INTO general (name) VALUES ("lighthours")')
+    cursor.execute('INSERT INTO general (name) VALUES ("livedata")')
 db.commit()
 db.close()
+if args.reset:
+    print('Database has been reset')
+    os.remove("/var/log/gsm.log")
+    os.remove("/var/log/alarms.log")
+    exit(0)
+
 
 log.debug('Starting web thread')
 web_thread = threading.Thread(name='web_thread', target=web, daemon=True)
 web_thread.start()
+
+def dbupdate(cmd):
+    try:
+        db = sqlite3.connect('/var/opt/lightdata.db')
+        cursor = db.cursor()
+        cursor.execute(cmd)
+        db.commit()
+        db.close()
+    except:
+        log.exception('Error updating DB')
+
+
+def dbselect(cmd, fetchall=True):
+    try:
+        db = sqlite3.connect('/var/opt/lightdata.db')
+        cursor = db.cursor()
+        cursor.execute(cmd)
+        if fetchall == False:
+            a = cursor.fetchone()
+        else:
+            a = cursor.fetchall()
+        db.close()
+    except:
+        log.exception('Error querying DB')
+    else:
+        return a
 
 
 class tempSensor():
@@ -106,6 +150,14 @@ class tempSensor():
             else:
                 log.warning(f'Failed getting temp/humidity sensor reading')
 
+def determinelighthours():
+    db = sqlite3.connect('/var/opt/lightdata.db')
+    cursor = db.cursor()
+    #cursor.execute(''
+    db.commit()
+    db.close()
+
+
 
 def normalizeit(value):
     return (0 + (100 - 0) * ((value - 250000) / (0 - 250000)))
@@ -130,6 +182,11 @@ tempalarm = timer() - 3600
 
 tempsensor = tempSensor()
 
+lastlight = None
+lastlighttimer = timer() - 300
+lastlighttimer2 = timer() - 300
+lastdatatimer = timer()
+
 while True:
     try:
         times = timer()
@@ -139,25 +196,50 @@ while True:
             a = pc_read(IN_RC)
             b.append(a)
             sleep(1)
+        if lastlight is None:
+            lastlight = int(mean(b))
+        else:
+            lastlight = light
         light = int(mean(b))
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+        if lastlight >= 200000 and light < 200000 and timer() - lastlighttimer > 300:
+            lastlighttimer = timer()
+            dbupdate(f'''UPDATE general SET timestamp = '{timestamp}', light = {light}, temp = {temp}, humidity = {humidity} WHERE name = "laston"''')
+            log.info(f'Light ON has been detected')
+        if lastlight < 200000 and light >= 200000 and timer() - lastlighttimer2 > 300:
+            lastlighttimer = timer()
+            dbupdate(f'''UPDATE general SET timestamp = '{timestamp}', light = {light}, temp = {temp}, humidity = {humidity} WHERE name = "lastoff"''')
+
+            s = dbselect('''SELECT timestamp FROM general WHERE name = "laston"''')
+            so = datetime.strptime(s[0][0], '%Y-%m-%d %H:%M')
+            eo = datetime.strptime(timestamp, '%Y-%m-%d %H:%M')
+            if so is not None and eo is not None:
+                td = eo - so
+                lh = round(td.total_seconds()/3600, 1)
+            else:
+                lh = 'N/A'
+            log.warning(lh)
+            dbupdate(f'''UPDATE general SET temp = {lh} WHERE name = "lighthours"''')
+            log.info(f'Light OFF has been detected. Total Light hours: {lh}')
         nlight = int(normalizeit(light))
         log.debug(f'Light Values Recieved: {light} ({nlight}/100)')
-        db = sqlite3.connect('/var/opt/lightdata.db')
-        cursor = db.cursor()
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-        cursor.execute('''INSERT INTO data(timestamp, light, temp, humidity) VALUES (?,?,?,?)''', (timestamp, light, temp, humidity))
-        db.commit()
-        db.close()
-        if is_time_between(datetime.now().time(), time(17, 15), time(5, 30)) and light > 100000:  # on light time
+
+
+        dbupdate(f"""UPDATE general SET timestamp = '{timestamp}', light = {light}, temp = {temp}, humidity = {humidity} WHERE name = 'livedata'""")
+        #mdb.commit()
+        log.debug('Data saved in livedata database')
+
+        if timer() - lastdatatimer > 300:
+            lastdatatimer = timer()
+            dbupdate(f'''INSERT INTO data(timestamp, light, temp, humidity) VALUES ('{timestamp}',{light},{temp},{humidity})''')
+            log.debug('Data saved in longterm database')
+
+
+        if is_time_between(datetime.now().time(), time(17, 00), time(5, 30)) and light > 100000:  # on light time
             if timer() - onalarm > 3600:
                 onalarm = timer()
                 log.warning(f'ALARM: Lights should be on but are NOT ON lightvalue: {light} ({nlight}/100)')
-                db = sqlite3.connect('/var/opt/lightdata.db')
-                cursor = db.cursor()
-                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-                cursor.execute('''INSERT INTO alarms(timestamp, value, type) VALUES (?,?,?)''', (timestamp, light, 'light not on'))
-                db.commit()
-                db.close()
+                dbupdate(f'''INSERT INTO alarms(timestamp, value, type) VALUES ('{timestamp}',{light},'light not on')''')
                 with open(alarmfile, "a") as myfile:
                     myfile.write(f"{timestamp}: Lights should be on but are NOT ON lightvalue: {light} ({nlight}/100)\n")
                 # sendsms(f'ALARM: Lights should be on but are NOT ON lightvalue: {light} ({nlight}/100)')
@@ -165,25 +247,15 @@ while True:
             if timer() - onalarm > 3600:
                 onalarm = timer()
                 log.warning(f'ALARM: Lights are on but weak. lightvalue: {light} ({nlight}/100)')
-                db = sqlite3.connect('/var/opt/lightdata.db')
-                cursor = db.cursor()
-                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-                cursor.execute('''INSERT INTO alarms(timestamp, value, type) VALUES (?,?,?)''', (timestamp, light, 'light too low'))
-                db.commit()
-                db.close()
+                dbupdate(f'''INSERT INTO alarms(timestamp, value, type) VALUES ('{timestamp}',{light},'light too low')''')
                 with open(alarmfile, "a") as myfile:
                     myfile.write(f"{timestamp}: Lights are on but weak. lightvalue: {light} ({nlight}/100)\n")
                 # sendsms(f'ALARM: Lights are on but WEAK. lightvalue: {light} ({nlight}/100)')
-        elif is_time_between(datetime.now().time(), time(6, 20), time(16, 50)) and light < 100000:  # off light time
+        elif is_time_between(datetime.now().time(), time(6, 10), time(16, 40)) and light < 100000:  # off light time
             if timer() - offalarm > 3600:
                 offalarm = timer()
                 log.warning(f'ALARM: Lights should be off but ARE STILL ON lightvalue: {light} ({nlight}/100)')
-                db = sqlite3.connect('/var/opt/lightdata.db')
-                cursor = db.cursor()
-                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-                cursor.execute('''INSERT INTO alarms(timestamp, value, type) VALUES (?,?,?)''', (timestamp, light, 'light not off'))
-                db.commit()
-                db.close()
+                dbupdate(f'''INSERT INTO alarms(timestamp, value, type) VALUES ('{timestamp}',{light},'light not off')''')
                 with open(alarmfile, "a") as myfile:
                     myfile.write(f"{timestamp}: Lights should be off but ARE STILL ON lightvalue: {light} ({nlight}/100)\n")
                 # sendsms(f'ALARM: Lights should be off but ARE STILL ON lightvalue: {light} ({nlight}/100)')
@@ -191,12 +263,7 @@ while True:
             if timer() - tempalarm > 3600:
                 tempalarm = timer()
                 log.warning(f'ALARM: Temp is OVER limit: {tempsensor.temp} F')
-                db = sqlite3.connect('/var/opt/lightdata.db')
-                cursor = db.cursor()
-                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-                cursor.execute('''INSERT INTO alarms(timestamp, value, type) VALUES (?,?,?)''', (timestamp, tempsensor.temp, 'over temp'))
-                db.commit()
-                db.close()
+                dbupdate(f'''INSERT INTO alarms(timestamp, value, type) VALUES ('{timestamp}',{tempsensor.temp},'over temp')''')
                 with open(alarmfile, "a") as myfile:
                     myfile.write(f"{timestamp}: Temp is OVER limit: {tempsensor.temp} F\n")
                 # sendsms(f'ALARM: Lights should be off but ARE STILL ON lightvalue: {light} ({nlight}/100)')
@@ -204,12 +271,7 @@ while True:
             if timer() - tempalarm > 3600:
                 tempalarm = timer()
                 log.warning(f'ALARM: Temp is UNDER limit: {tempsensor.temp} F')
-                db = sqlite3.connect('/var/opt/lightdata.db')
-                cursor = db.cursor()
-                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-                cursor.execute('''INSERT INTO alarms(timestamp, value, type) VALUES (?,?,?)''', (timestamp, tempsensor.temp, 'under temp'))
-                db.commit()
-                db.close()
+                dbupdate(f'''INSERT INTO alarms(timestamp, value, type) VALUES ('{timestamp}',{tempsensor.temp},'under temp')''')
                 with open(alarmfile, "a") as myfile:
                      myfile.write(f"{timestamp}: Temp is UNDER limit: {tempsensor.temp} F\n")
                 # sendsms(f'ALARM: Lights should be off but ARE STILL ON lightvalue: {light} ({nlight}/100)')

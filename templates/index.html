@@ -1,11 +1,26 @@
 <html>
-<p>Lightvalue:  0 = Bright  -  300,000+ = Pitch Black</p>
+<p>Darkness:  0 = Bright  -  300,000+ = Pitch Black<br>Lightscale:  0 = Dark  -  100 = Light</p>
+
 <font face="helvetica">
-<h1>{{ timestamp }}<br>Light: {{ light }} ({{ light2 }}/100)<br>Temp: {{ temp }}&#176;F ({{ temp2 }}}&#176;C)<br>Humidity: {{ humidity }}%</h1>
+
+<h2>Current Moon Phase: {{ currentmoon }}<br>
+Next Moon Phase: {{ nextmoon[0] }} on {{ nextmoon[1].__str__() }} in x Days</h2>
+
+<h1>Live Data ({{ timestamp }})<br>Darkness: {{ light }} Lightscale: ({{ light2 }}/100)<br>Temp: {{ temp }}&#176;F ({{ temp2 }}&#176;C)<br>Humidity: {{ humidity }}%</h1>
+
+<h2>
+Last Lights on: {{ laston[0] }}  Temp: {{ laston[2] }}&#176;F  Humidity: {{ laston[3] }}%<br>
+Last Lights off: {{ lastoff[0] }} Temp: {{ lastoff[2] }}&#176;F  Humidity: {{ lastoff[3] }}%<br>
+Last Light Cycle: {{ lighthours }} Hours</h2>
+
 <h2>Alarms:</h2>
 {% for each in alarms %}
-<p>{{ each[0] }}<br>Alarm Reason: {{ each[2].upper() }}<br>Value: {{ each[1] }}</p>
+<p><b>{{ each[0] }}<br>Alarm Reason: {{ each[2].upper() }}<br>Value: {{ each[1] }}</b></p>
 {% endfor %}
 </font>
 <a href="/clearalarms">Clear Alarms</a>
+<br>
+<br>
+<p>{{ wifi_info }}</p>
+
 </html>
