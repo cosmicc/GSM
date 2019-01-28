@@ -14,9 +14,9 @@ class astralData():
     def update(self):
         date = ephem.Date(datetime.now().date())
         self.seasondata.update({'Autumnal (Fall) Equinox': ephem.next_autumn_equinox(date).datetime().date()})
-        self.moondata.update({'First Quarter Moon': ephem.next_first_quarter_moon(date).datetime().date()})
+        self.moondata.update({'First Quarter': ephem.next_first_quarter_moon(date).datetime().date()})
         self.moondata.update({'Full Moon': ephem.next_full_moon(date).datetime().date()})
-        self.moondata.update({'Last Quarter Moon': ephem.next_last_quarter_moon(date).datetime().date()})
+        self.moondata.update({'Last Quarter': ephem.next_last_quarter_moon(date).datetime().date()})
         self.moondata.update({'New Moon': ephem.next_new_moon(date).datetime().date()})
         self.seasondata.update({'Vernal (Spring) Equinox': ephem.next_spring_equinox(date).datetime().date()})
         self.seasondata.update({'Summer Solstice': ephem.next_summer_solstice(date).datetime().date()})
@@ -46,20 +46,20 @@ class astralData():
                 self.nextseason = [a, self.seasondata[a], daysaway(self.seasondata[a])]
                 state2 = False
         self.seasondata = b
-        if self.nextphase[0] == 'Last Quarter Moon' and datetime.now().date() < self.nextphase[1]:
-            self.currentphase = 'Waning Gibbus Moon'
-        if self.nextphase[0] == 'Last Quarter Moon' and datetime.now().date() == self.nextphase[1]:
-            self.currentphase = 'Last Quarter Moon'
+        if self.nextphase[0] == 'Last Quarter' and datetime.now().date() < self.nextphase[1]:
+            self.currentphase = 'Waning Gibbus'
+        if self.nextphase[0] == 'Last Quarter' and datetime.now().date() == self.nextphase[1]:
+            self.currentphase = 'Last Quarter'
         if self.nextphase[0] == 'New Moon' and datetime.now().date() < self.nextphase[1]:
-            self.currentphase = 'Waning Crescent Moon'
+            self.currentphase = 'Waning Crescent'
         if self.nextphase[0] == 'New Moon' and datetime.now().date() == self.nextphase[1]:
             self.currentphase = 'New Moon'
-        if self.nextphase[0] == 'First Quarter Moon' and datetime.now().date() < self.nextphase[1]:
-            self.currentphase = 'Waxing Crescent Moon'
-        if self.nextphase[0] == 'First Quarter Moon' and datetime.now().date() == self.nextphase[1]:
-            self.currentphase = 'First Quarter Moon'
+        if self.nextphase[0] == 'First Quarter' and datetime.now().date() < self.nextphase[1]:
+            self.currentphase = 'Waxing Crescent'
+        if self.nextphase[0] == 'First Quarter' and datetime.now().date() == self.nextphase[1]:
+            self.currentphase = 'First Quarter'
         if self.nextphase[0] == 'Full Moon' and datetime.now().date() < self.nextphase[1]:
-            self.currentphase = 'Waxing Gibbus Moon'
+            self.currentphase = 'Waxing Gibbus'
         if self.nextphase[0] == 'Full Moon' and datetime.now().date() == self.nextphase[1]:
             self.currentphase = 'Full Moon'
 

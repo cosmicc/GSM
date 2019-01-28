@@ -2,6 +2,7 @@ import logging
 # import pandas as pd
 import sqlite3
 
+from datetime import datetime
 from flask import Flask, redirect, render_template, url_for
 from loguru import logger as log
 from modules.extras import f2c
@@ -107,7 +108,9 @@ def index():
                 light2 = int(b)
         else:
             light2 = 'N/A'
-        return render_template('index.html', timestamp=livedata[0], light=f'{livedata[1]:,d}', light2=light2, temp=livedata[2], temp2=f2c(livedata[2]), humidity=livedata[3], laston=laston, lastoff=lastoff, lighthours=lighthours[0], currentmoon=astdata.currentphase, nextmoon=astdata.nextphase, wifi_info=get_wifi_info(), alarms=alarmdata)
+        td = astdata.nextphase[1] - datetime.now().date()
+        tr = astdata.moondata["Full Moon"] - datetime.now().date()
+        return render_template('index.html', timestamp=livedata[0], light=f'{livedata[1]:,d}', light2=light2, temp=livedata[2], temp2=f2c(livedata[2]), humidity=livedata[3], laston=laston, lastoff=lastoff, lighthours=lighthours[0], currentmoon=astdata.currentphase, nextmoon=astdata.nextphase, moondata=astdata.moondata, npd=td.days, fmd=tr.days , wifi_info=get_wifi_info(), alarms=alarmdata)
     except:
         log.exception(f'Error in web index generation')
         return 'Error', 400

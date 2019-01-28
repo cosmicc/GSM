@@ -1,4 +1,5 @@
 from os import getenv, getloadavg, popen, uname
+import subprocess
 from subprocess import PIPE, Popen, check_output
 
 import netifaces as ni
