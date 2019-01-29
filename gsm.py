@@ -134,6 +134,7 @@ class tempSensor():
             hum, tmp = Adafruit_DHT.read_retry(self.sensor, self.pin)
         except:
             log.error(f'Error polling temp/humidity sensor')
+            return (0, 0)
         else:
             log.debug(f'Temp Values Recieved: {float_trunc_1dec(tmp)}C {float_trunc_1dec(c2f(tmp))}F {self.humidity}%')
             if hum is not None and tmp is not None:
@@ -145,10 +146,11 @@ class tempSensor():
                     log.error(f'Invalid temp units in config file {self.units}')
                 self.humidity = float_trunc_1dec(hum)
                 # print(self.temp, self.humidity)
-                return (self.temp, self.humidity)
                 log.debug(f'Tempurature={self.temp}*{self.units}  Humidity={self.humidity}%')
+                return (self.temp, self.humidity)
             else:
                 log.warning(f'Failed getting temp/humidity sensor reading')
+                return (0, 0)
 
 def determinelighthours():
     db = sqlite3.connect('/var/opt/lightdata.db')
@@ -267,7 +269,7 @@ while True:
                 with open(alarmfile, "a") as myfile:
                     myfile.write(f"{timestamp}: Temp is OVER limit: {tempsensor.temp} F\n")
                 # sendsms(f'ALARM: Lights should be off but ARE STILL ON lightvalue: {light} ({nlight}/100)')
-        elif tempsensor.temp < 50:
+        elif tempsensor.temp < 50 and tempsensor.temp != 0:
             if timer() - tempalarm > 3600:
                 tempalarm = timer()
                 log.warning(f'ALARM: Temp is UNDER limit: {tempsensor.temp} F')
