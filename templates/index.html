@@ -14,14 +14,15 @@ Last Light Cycle: {{ lighthours }} Hours</h2>
 Next Moon Phase: {{ nextmoon[0] }} in {{ npd }} Days on {{ nextmoon[1].__str__() }}<br>
 Next Full Moon in {{ fmd }} Days on {{ moondata['Full Moon'].__str__()}}</h2>
 
-<h2>Alarms:</h2>
+{% if hasalarms %}
+<h2>Alerts:</h2>
 {% for each in alarms %}
 <p><b>{{ each[0] }}<br>Alarm Reason: {{ each[2].upper() }}<br>Value: {{ each[1] }}</b></p>
 {% endfor %}
 </font>
 <a href="/clearalarms">Clear Alarms</a>
+{% else %}
 <br>
-<br>
-
-
+<h2>No Alerts</h2>
+{% endif %}
 </html>

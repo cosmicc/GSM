@@ -110,7 +110,11 @@ def index():
             light2 = 'N/A'
         td = astdata.nextphase[1] - datetime.now().date()
         tr = astdata.moondata["Full Moon"] - datetime.now().date()
-        return render_template('index.html', timestamp=livedata[0], light=f'{livedata[1]:,d}', light2=light2, temp=livedata[2], temp2=f2c(livedata[2]), humidity=livedata[3], laston=laston, lastoff=lastoff, lighthours=lighthours[0], currentmoon=astdata.currentphase, nextmoon=astdata.nextphase, moondata=astdata.moondata, npd=td.days, fmd=tr.days , wifi_info=get_wifi_info(), alarms=alarmdata)
+        if len(alarmdata) > 0:
+            hasalarms = True
+        else:
+            hasalarms = False
+        return render_template('index.html', timestamp=livedata[0], light=f'{livedata[1]:,d}', light2=light2, temp=livedata[2], temp2=f2c(livedata[2]), humidity=livedata[3], laston=laston, lastoff=lastoff, lighthours=lighthours[0], currentmoon=astdata.currentphase, nextmoon=astdata.nextphase, moondata=astdata.moondata, npd=td.days, fmd=tr.days , wifi_info=get_wifi_info(), hasalarms=hasalarms, alarms=alarmdata)
     except:
         log.exception(f'Error in web index generation')
         return 'Error', 400
