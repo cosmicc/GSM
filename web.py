@@ -5,7 +5,7 @@ import sqlite3
 from datetime import datetime
 from flask import Flask, redirect, render_template, url_for
 from loguru import logger as log
-from modules.extras import f2c
+from modules.extras import f2c, float_trunc_1dec
 from modules.rpiboard import get_wifi_info
 from moon import astralData
 
@@ -96,10 +96,22 @@ def index():
         laston = cursor.fetchone()
         cursor.execute('''SELECT timestamp, light, temp, humidity FROM general WHERE name = "lastoff" LIMIT 1''')
         lastoff = cursor.fetchone()
+        cursor.execute('''SELECT light, temp, humidity FROM data ORDER BY id DESC LIMIT 12''')
+        last30 = cursor.fetchall()
         cursor.execute('''SELECT temp FROM general WHERE name = "lighthours"''')
         lighthours = cursor.fetchone()
         db.close()
         astdata.update()
+        l = []
+        t = []
+        h = []
+        for each in last30:
+            l.append(each[0])
+            t.append(each[1])
+            h.append(each[2])
+        lavg = int(sum(l) / len(l))
+        tavg = float_trunc_1dec(sum(t) / len(t))
+        havg = float_trunc_1dec(sum(h) / len(h))
         if livedata[1] is not None:
             b = 0 + (100 - 0) * ((livedata[1] - 250000) / (0 - 250000))
             if int(b) < 0:
@@ -114,7 +126,13 @@ def index():
             hasalarms = True
         else:
             hasalarms = False
-        return render_template('index.html', timestamp=livedata[0], light=f'{livedata[1]:,d}', light2=light2, temp=livedata[2], temp2=f2c(livedata[2]), humidity=livedata[3], laston=laston, lastoff=lastoff, lighthours=lighthours[0], currentmoon=astdata.currentphase, nextmoon=astdata.nextphase, moondata=astdata.moondata, npd=td.days, fmd=tr.days , wifi_info=get_wifi_info(), hasalarms=hasalarms, alarms=alarmdata)
+        ttrend = float_trunc_1dec(livedata[2] - tavg)
+        htrend = float_trunc_1dec(livedata[3] - havg)
+        if ttrend > 0:
+            ttrend = f'+{ttrend}'
+        if htrend > 0:
+            htrend = f'+{htrend}'
+        return render_template('index.html', timestamp=livedata[0], light=f'{livedata[1]:,d}', light2=light2, temp=livedata[2], temp2=f2c(livedata[2]), humidity=livedata[3], laston=laston, lastoff=lastoff, lighthours=lighthours[0], currentmoon=astdata.currentphase, nextmoon=astdata.nextphase, moondata=astdata.moondata, npd=td.days, fmd=tr.days, lavg=lavg, tavg=tavg, havg=havg, ttrend=ttrend, htrend=htrend, wifi_info=get_wifi_info(), hasalarms=hasalarms, alarms=alarmdata)
     except:
         log.exception(f'Error in web index generation')
         return 'Error', 400

@@ -114,7 +114,7 @@ def dbselect(cmd, fetchall=True):
 class tempSensor():
     def __init__(self):
         self.sensor_type = 'DHT22'
-        self.pin = 24
+        self.pin = 23
         self.units = 'F'
         self.temp = 0.0
         self.humidity = 0.0
@@ -173,7 +173,7 @@ def pc_read(RCpin):
 
         GPIO.setup(RCpin, GPIO.IN)
         # This takes about 1 millisecond per loop cycle
-        while (GPIO.input(RCpin) == GPIO.LOW):
+        while (GPIO.input(RCpin) == GPIO.LOW) and reading < 500000:
             reading += 1
         return reading
 
@@ -253,7 +253,7 @@ while True:
                 with open(alarmfile, "a") as myfile:
                     myfile.write(f"{timestamp}: Lights are on but weak. lightvalue: {light} ({nlight}/100)\n")
                 # sendsms(f'ALARM: Lights are on but WEAK. lightvalue: {light} ({nlight}/100)')
-        elif is_time_between(datetime.now().time(), time(6, 10), time(16, 40)) and light < 100000:  # off light time
+        elif is_time_between(datetime.now().time(), time(6, 10), time(16, 40)) and light < 400000:  # off light time
             if timer() - offalarm > 3600:
                 offalarm = timer()
                 log.warning(f'ALARM: Lights should be off but ARE STILL ON lightvalue: {light} ({nlight}/100)')
@@ -269,7 +269,7 @@ while True:
                 with open(alarmfile, "a") as myfile:
                     myfile.write(f"{timestamp}: Temp is OVER limit: {tempsensor.temp} F\n")
                 # sendsms(f'ALARM: Lights should be off but ARE STILL ON lightvalue: {light} ({nlight}/100)')
-        elif tempsensor.temp < 50 and tempsensor.temp != 0:
+        elif tempsensor.temp < 45 and tempsensor.temp != 0:
             if timer() - tempalarm > 3600:
                 tempalarm = timer()
                 log.warning(f'ALARM: Temp is UNDER limit: {tempsensor.temp} F')
