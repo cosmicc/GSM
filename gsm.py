@@ -162,7 +162,12 @@ def determinelighthours():
 
 
 def normalizeit(value):
-    return (0 + (100 - 0) * ((value - 250000) / (0 - 250000)))
+    b = 0 + (100 - 0) * ((value - 100000) / (300 - 100000))
+    if int(b) < 0:
+        b = 0
+    elif int(b) > 100:
+        b = 100
+    return int(b)
 
 
 def pc_read(RCpin):

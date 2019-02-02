@@ -3,24 +3,25 @@
 
 <font face="helvetica">
 
-<h2>Live Data ({{ timestamp }})<br>Darkness: {{ light }} Lightscale: ({{ light2 }}/100)<br>
-Last Hour Darkness Avg: {{ lavg }}<br>
+<h2>{{ convtime(timestamp) }}<br>
+{{ lightstring }}  ({{ light2 }}/100)<br>
+Darkness: {{ light }} Last Hour Avg: {{ lavg }}<br>
 Current Temp: {{ temp }}&#176;F Last Hour Trend ({{ ttrend }}&#176;F)<br>
 Humidity: {{ humidity }}% Last Hour Trend ({{ htrend }}%)<br>
 
 <h2>
-Last Lights on: {{ laston[0] }}  Temp: {{ laston[2] }}&#176;F  Humidity: {{ laston[3] }}%<br>
-Last Lights off: {{ lastoff[0] }} Temp: {{ lastoff[2] }}&#176;F  Humidity: {{ lastoff[3] }}%<br>
+Last Lights on: {{ convtime(laston[0]) }}  Temp: {{ laston[2] }}&#176;F  Humidity: {{ laston[3] }}%<br>
+Last Lights off: {{ convtime(lastoff[0]) }} Temp: {{ lastoff[2] }}&#176;F  Humidity: {{ lastoff[3] }}%<br>
 Last Light Cycle: {{ lighthours }} Hours</h2>
 
 <h2>Current Moon Phase: {{ currentmoon }}<br>
-Next Moon Phase: {{ nextmoon[0] }} in {{ npd }} Days on {{ nextmoon[1].__str__() }}<br>
-Next Full Moon in {{ fmd }} Days on {{ moondata['Full Moon'].__str__()}}</h2>
+Next Moon Phase: {{ nextmoon[0] }} in {{ npd }} Days on {{ convdate(nextmoon[1].__str__()) }}<br>
+Next Full Moon in {{ fmd }} Days on {{ convdate(moondata['Full Moon'].__str__())}}</h2>
 
 {% if hasalarms %}
 <h2>Alerts:</h2>
 {% for each in alarms %}
-<p><b>{{ each[0] }}<br>Alarm Reason: {{ each[2].upper() }}<br>Value: {{ each[1] }}</b></p>
+<p><b>{{ convtime(each[0]) }}<br>Alarm Reason: {{ each[2].upper() }}<br>Value: {{ each[1] }}</b></p>
 {% endfor %}
 </font>
 <a href="/clearalarms">Clear Alarms</a>
