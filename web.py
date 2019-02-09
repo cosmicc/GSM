@@ -206,7 +206,7 @@ def getdata():
             ttrend = f'+{ttrend}'
         if htrend > 0:
             htrend = f'+{htrend}'
-        resp = {'timestamp': livedata[0], 'darkness': f'{livedata[1]:,d}', 'lightscale': light2, 'tempc': livedata[2], 'tempf': f2c(livedata[2]), 'humidity': livedata[3], 'lighthours': lighthours[0], 'lightavg': lavg, 'tempavg': tavg, 'humidityavg': havg, 'temptrend': ttrend, 'humiditytrend': htrend, 'hasalarms': hasalarms, 'alarms': alarmdata}
+        resp = {'timestamp': livedata[0], 'darkness': f'{livedata[1]}', 'lightscale': light2, 'tempc': livedata[2], 'tempf': f2c(livedata[2]), 'humidity': livedata[3], 'lighthours': lighthours[0], 'lightavg': lavg, 'tempavg': tavg, 'humidityavg': havg, 'temptrend': ttrend, 'humiditytrend': htrend, 'hasalarms': hasalarms, 'alarms': alarmdata}
         return jsonify(resp)
     except:
         log.exception(f'Error in web in data generation')
