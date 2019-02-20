@@ -7,7 +7,8 @@ from datetime import datetime, time
 from statistics import mean
 from time import sleep
 from timeit import default_timer as timer
-
+from configparser import ConfigParser
+import requests
 import Adafruit_DHT
 import RPi.GPIO as GPIO
 from loguru import logger as log
@@ -23,6 +24,9 @@ GPIO.setmode(GPIO.BCM)
 
 logfile = '/var/log/gsm.log'
 alarmfile = '/var/log/alarms.log'
+
+config = ConfigParser()
+config.read('/var/opt/gsm.conf')
 
 boardled = Led('status')
 boardled.ledoff()
@@ -54,6 +58,11 @@ else:
 
 log.log('STARTUP', 'GSM is starting up')
 
+weather_api = config.get('general', 'openweather_api')
+weather_zip = config.get('general', 'openweather_zipcode')
+
+outside_weather = {}
+
 if args.reset:
    os.remove("/var/opt/lightdata.db")
 
@@ -65,12 +74,15 @@ cursor = db.cursor()
 cursor.execute('CREATE TABLE IF NOT EXISTS alarms(id INTEGER PRIMARY KEY, timestamp TEXT, value INTEGER, type TEXT)')
 cursor.execute('CREATE TABLE IF NOT EXISTS data(id INTEGER PRIMARY KEY, timestamp TEXT, light INTEGER, temp REAL, humidity REAL)')
 cursor.execute('CREATE TABLE IF NOT EXISTS general(id INTEGER PRIMARY KEY, name TEXT, timestamp TEXT, light INTEGER, temp REAL, humidity REAL)')
+cursor.execute('CREATE TABLE IF NOT EXISTS outside(id INTEGER PRIMARY KEY, name TEXT, timestamp INTEGER, tempnow REAL, temphi REAL, templow REAL, humidity REAL, weather TEXT, sunrise INTEGER, sunset INTEGER')
 #mcursor.execute('INSERT INTO general (name) VALUES ("lastdata")')
 if args.reset:
     cursor.execute('INSERT INTO general (name) VALUES ("laston")')
     cursor.execute('INSERT INTO general (name) VALUES ("lastoff")')
     cursor.execute('INSERT INTO general (name) VALUES ("lighthours")')
     cursor.execute('INSERT INTO general (name) VALUES ("livedata")')
+    cursor.execute('INSERT INTO general (name) VALUES ("lasthidon")')
+    cursor.execute('INSERT INTO general (name) VALUES ("lasthidoff")')
 db.commit()
 db.close()
 if args.reset:
@@ -182,10 +194,18 @@ def pc_read(RCpin):
             reading += 1
         return reading
 
+def get_outside_weather():
+    url = f"https://api.openweathermap.org/data/2.5/weather?zip={openweather_zip},us&appid={openweather_api}&units=imperial"
+    responce = requests.get(url)
+    if responce.ok:
+        ow = json.loads(response.content)
+        dbupdate(f'''UPDATE outside SET timestamp = '{ow["dt"]}', tempnow = {ow["main"]["temp"]}, temphi = {ow["main"]["temp_max"]}, templow = {ow["main"]["temp_min"]}, humidity = {ow["main"]["humidity"]}, weather = {ow["weather"]["description"]}, sunrise = {ow["sys"]["sunrise"]}, sunset = {ow["sys"]["sunset"]} WHERE name = "current"''')
+
 
 onalarm = timer() - 3600
 offalarm = timer() - 3600
 tempalarm = timer() - 3600
+oweather = timer() - 3600
 
 tempsensor = tempSensor()
 
@@ -282,6 +302,10 @@ while True:
                 with open(alarmfile, "a") as myfile:
                      myfile.write(f"{timestamp}: Temp is UNDER limit: {tempsensor.temp} F\n")
                 # sendsms(f'ALARM: Lights should be off but ARE STILL ON lightvalue: {light} ({nlight}/100)')
+        if timer() - oweather > 3600:
+            oweather = timer()
+            log.info('New Outdoor weather information recieved')
+            get_outside_weather()
 
     except KeyboardInterrupt:
         log.critical(f'Keyboard Interrupt')
