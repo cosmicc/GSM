@@ -1,18 +1,20 @@
 import argparse
+import json
+import os
 import sqlite3
 import sys
-import os
 import threading
+from configparser import ConfigParser
 from datetime import datetime, time
 from statistics import mean
 from time import sleep
 from timeit import default_timer as timer
-from configparser import ConfigParser
-import requests
+
 import Adafruit_DHT
+import requests
 import RPi.GPIO as GPIO
 from loguru import logger as log
-from modules.extras import float_trunc_1dec, c2f
+from modules.extras import c2f, float_trunc_1dec
 from modules.rpiboard import Led, cpu_temp
 from sms import sendsms
 from timebetween import is_time_between
@@ -64,18 +66,18 @@ weather_zip = config.get('general', 'openweather_zipcode')
 outside_weather = {}
 
 if args.reset:
-   os.remove("/var/opt/lightdata.db")
+    os.remove("/var/opt/lightdata.db")
 
-#mdb = sqlite3.connect("file::memory:?cache=shared", uri=True)
+# mdb = sqlite3.connect("file::memory:?cache=shared", uri=True)
 db = sqlite3.connect('/var/opt/lightdata.db')
 cursor = db.cursor()
-#mcursor = mdb.cursor()
-#mcursor.execute('CREATE TABLE general(id INTEGER PRIMARY KEY, name TEXT, timestamp TEXT, light INTEGER, temp REAL, humidity REAL)')
+# mcursor = mdb.cursor()
+# mcursor.execute('CREATE TABLE general(id INTEGER PRIMARY KEY, name TEXT, timestamp TEXT, light INTEGER, temp REAL, humidity REAL)')
 cursor.execute('CREATE TABLE IF NOT EXISTS alarms(id INTEGER PRIMARY KEY, timestamp TEXT, value INTEGER, type TEXT)')
 cursor.execute('CREATE TABLE IF NOT EXISTS data(id INTEGER PRIMARY KEY, timestamp TEXT, light INTEGER, temp REAL, humidity REAL)')
 cursor.execute('CREATE TABLE IF NOT EXISTS general(id INTEGER PRIMARY KEY, name TEXT, timestamp TEXT, light INTEGER, temp REAL, humidity REAL)')
 cursor.execute('CREATE TABLE IF NOT EXISTS outside(id INTEGER PRIMARY KEY, name TEXT, timestamp INTEGER, tempnow REAL, temphi REAL, templow REAL, humidity REAL, weather TEXT, sunrise INTEGER, sunset INTEGER')
-#mcursor.execute('INSERT INTO general (name) VALUES ("lastdata")')
+# mcursor.execute('INSERT INTO general (name) VALUES ("lastdata")')
 if args.reset:
     cursor.execute('INSERT INTO general (name) VALUES ("laston")')
     cursor.execute('INSERT INTO general (name) VALUES ("lastoff")')
@@ -95,6 +97,7 @@ if args.reset:
 log.debug('Starting web thread')
 web_thread = threading.Thread(name='web_thread', target=web, daemon=True)
 web_thread.start()
+
 
 def dbupdate(cmd):
     try:
@@ -164,13 +167,13 @@ class tempSensor():
                 log.warning(f'Failed getting temp/humidity sensor reading')
                 return (0, 0)
 
+
 def determinelighthours():
     db = sqlite3.connect('/var/opt/lightdata.db')
     cursor = db.cursor()
     #cursor.execute(''
     db.commit()
     db.close()
-
 
 
 def normalizeit(value):
@@ -194,10 +197,11 @@ def pc_read(RCpin):
             reading += 1
         return reading
 
+
 def get_outside_weather():
-    url = f"https://api.openweathermap.org/data/2.5/weather?zip={openweather_zip},us&appid={openweather_api}&units=imperial"
-    responce = requests.get(url)
-    if responce.ok:
+    url = f"https://api.openweathermap.org/data/2.5/weather?zip={weather_zip},us&appid={weather_api}&units=imperial"
+    response = requests.get(url)
+    if response.ok:
         ow = json.loads(response.content)
         dbupdate(f'''UPDATE outside SET timestamp = '{ow["dt"]}', tempnow = {ow["main"]["temp"]}, temphi = {ow["main"]["temp_max"]}, templow = {ow["main"]["temp_min"]}, humidity = {ow["main"]["humidity"]}, weather = {ow["weather"]["description"]}, sunrise = {ow["sys"]["sunrise"]}, sunset = {ow["sys"]["sunset"]} WHERE name = "current"''')
 
@@ -225,8 +229,6 @@ while True:
             sleep(1)
         if lastlight is None:
             lastlight = int(mean(b))
-        else:
-            lastlight = light
         light = int(mean(b))
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
         if lastlight >= 200000 and light < 200000 and timer() - lastlighttimer > 300:
@@ -248,6 +250,7 @@ while True:
             log.warning(lh)
             dbupdate(f'''UPDATE general SET temp = {lh} WHERE name = "lighthours"''')
             log.info(f'Light OFF has been detected. Total Light hours: {lh}')
+        lastlight = light
         nlight = int(normalizeit(light))
         log.debug(f'Light Values Recieved: {light} ({nlight}/100)')
 
@@ -260,7 +263,6 @@ while True:
             lastdatatimer = timer()
             dbupdate(f'''INSERT INTO data(timestamp, light, temp, humidity) VALUES ('{timestamp}',{light},{temp},{humidity})''')
             log.debug('Data saved in longterm database')
-
 
         if is_time_between(datetime.now().time(), time(17, 00), time(5, 30)) and light > 100000:  # on light time
             if timer() - onalarm > 3600:
