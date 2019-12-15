@@ -1,9 +1,9 @@
 import logging
 # import pandas as pd
 import sqlite3
-
 from datetime import datetime
-from flask import Flask, redirect, render_template, url_for, jsonify
+
+from flask import Flask, jsonify, redirect, render_template, url_for
 from loguru import logger as log
 from modules.extras import f2c, float_trunc_1dec
 from modules.rpiboard import get_wifi_info
@@ -13,10 +13,10 @@ app = Flask(__name__)
 loggs = logging.getLogger('werkzeug')
 # app.logger.disabled = True
 # loggs.addHandler(logging.FileHandler('/var/log/access.log'))
-
-#mdb = sqlite3.connect("file::memory:?cache=shared", uri=True)
+# mdb = sqlite3.connect("file::memory:?cache=shared", uri=True)
 
 astdata = astralData()
+
 
 @app.context_processor
 def _convtime():
@@ -47,20 +47,16 @@ def dbupdate(cmd):
 
 
 @log.catch
-def dbselect(cmd, fetchall=True, memorydb=False):
+def dbselect(cmd, fetchall=True):
     try:
-        if not memorydb:
-            db = sqlite3.connect('/var/opt/lightdata.db')
-        else:
-            db = mdb
+        db = sqlite3.connect('/var/opt/lightdata.db')
         cursor = db.cursor()
         cursor.execute(cmd)
-        if fetchall == False:
+        if not fetchall:
             a = cursor.fetchone()
         else:
             a = cursor.fetchall()
-        if not memorydb:
-            db.close()
+        db.close()
     except:
         log.exception('Error querying DB')
     else:
@@ -118,14 +114,14 @@ def index():
         lighthours = cursor.fetchone()
         db.close()
         astdata.update()
-        l = []
+        lp = []
         t = []
         h = []
         for each in last30:
-            l.append(each[0])
+            lp.append(each[0])
             t.append(each[1])
             h.append(each[2])
-        lavg = int(sum(l) / len(l))
+        lavg = int(sum(lp) / len(lp))
         tavg = float_trunc_1dec(sum(t) / len(t))
         havg = float_trunc_1dec(sum(h) / len(h))
         if livedata[1] is not None:
@@ -161,6 +157,7 @@ def index():
         log.exception(f'Error in web index generation')
         return 'Error', 400
 
+
 @log.catch
 @app.route("/data")
 def getdata():
@@ -176,14 +173,14 @@ def getdata():
         cursor.execute('''SELECT temp FROM general WHERE name = "lighthours"''')
         lighthours = cursor.fetchone()
         db.close()
-        l = []
+        lp = []
         t = []
         h = []
         for each in last30:
-            l.append(each[0])
+            lp.append(each[0])
             t.append(each[1])
             h.append(each[2])
-        lavg = int(sum(l) / len(l))
+        lavg = int(sum(lp) / len(lp))
         tavg = float_trunc_1dec(sum(t) / len(t))
         havg = float_trunc_1dec(sum(h) / len(h))
         if livedata[1] is not None:
@@ -211,7 +208,6 @@ def getdata():
     except:
         log.exception(f'Error in web in data generation')
         return 'Error', 400
-
 
 
 @log.catch

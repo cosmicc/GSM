@@ -1,5 +1,5 @@
-from os import getenv, getloadavg, popen, uname
 import subprocess
+from os import getenv, getloadavg, popen, uname
 from subprocess import PIPE, Popen, check_output
 
 # import netifaces as ni
@@ -150,7 +150,7 @@ class Led(object):
         trig = open('/sys/class/leds/{}/trigger'.format(self.led), 'w')
         trig.write('none')
         trig.close()
-        check_output(['modprobe', 'ledtrig_heartbeat'], shell=False)
+        # check_output(['modprobe', 'ledtrig_heartbeat'], shell=False)
 
     def ledon(self):
         lo = open('/sys/class/leds/{}/brightness'.format(self.led), 'w')
