@@ -2,7 +2,7 @@ from os import getenv, getloadavg, popen, uname
 import subprocess
 from subprocess import PIPE, Popen, check_output
 
-import netifaces as ni
+# import netifaces as ni
 from modules.extras import float_trunc_1dec
 
 
@@ -28,8 +28,8 @@ def is_zero():
         return False
 
 
-def get_ip_address():
-    return ni.ifaddresses('wlan0')[ni.AF_INET][0]['addr']
+# def get_ip_address():
+#    return ni.ifaddresses('wlan0')[ni.AF_INET][0]['addr']
 
 
 def rpi_mem():
