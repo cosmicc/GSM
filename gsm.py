@@ -28,7 +28,7 @@ logfile = '/var/log/gsm.log'
 alarmfile = '/var/log/alarms.log'
 
 config = ConfigParser()
-config.read('/var/opt/gsm.conf')
+config.read('/etc/gsm.conf')
 
 boardled = Led('status')
 boardled.ledoff()
@@ -115,7 +115,7 @@ def dbselect(cmd, fetchall=True):
         db = sqlite3.connect('/var/opt/lightdata.db')
         cursor = db.cursor()
         cursor.execute(cmd)
-        if fetchall == False:
+        if not fetchall:
             a = cursor.fetchone()
         else:
             a = cursor.fetchall()
@@ -171,7 +171,7 @@ class tempSensor():
 def determinelighthours():
     db = sqlite3.connect('/var/opt/lightdata.db')
     cursor = db.cursor()
-    #cursor.execute(''
+    # cursor.execute(''
     db.commit()
     db.close()
 
@@ -244,7 +244,7 @@ while True:
             eo = datetime.strptime(timestamp, '%Y-%m-%d %H:%M')
             if so is not None and eo is not None:
                 td = eo - so
-                lh = round(td.total_seconds()/3600, 1)
+                lh = round(td.total_seconds() / 3600, 1)
             else:
                 lh = 'N/A'
             log.warning(lh)
@@ -254,9 +254,8 @@ while True:
         nlight = int(normalizeit(light))
         log.debug(f'Light Values Recieved: {light} ({nlight}/100)')
 
-
         dbupdate(f"""UPDATE general SET timestamp = '{timestamp}', light = {light}, temp = {temp}, humidity = {humidity} WHERE name = 'livedata'""")
-        #mdb.commit()
+        # mdb.commit()
         log.debug('Data saved in livedata database')
 
         if timer() - lastdatatimer > 300:
@@ -302,7 +301,7 @@ while True:
                 log.warning(f'ALARM: Temp is UNDER limit: {tempsensor.temp} F')
                 dbupdate(f'''INSERT INTO alarms(timestamp, value, type) VALUES ('{timestamp}',{tempsensor.temp},'under temp')''')
                 with open(alarmfile, "a") as myfile:
-                     myfile.write(f"{timestamp}: Temp is UNDER limit: {tempsensor.temp} F\n")
+                    myfile.write(f"{timestamp}: Temp is UNDER limit: {tempsensor.temp} F\n")
                 # sendsms(f'ALARM: Lights should be off but ARE STILL ON lightvalue: {light} ({nlight}/100)')
         if timer() - oweather > 3600:
             oweather = timer()
