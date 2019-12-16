@@ -207,9 +207,9 @@ def get_outside_weather():
         ow = json.loads(response.content)
         log.debug(f'OWM: {ow}')
         log.debug(f'dt: {ow["dt"]}')
-        log.debug(f'wd: {ow["weather"]["description"]}')
+        log.debug(f'wd: {ow["weather"][0]["description"]}')
         log.debug(f'dt: {ow["main"]["humidity"]}')
-        dbupdate(f'''UPDATE outside SET timestamp = '{ow["dt"]}', tempnow = {ow["main"]["temp"]}, temphi = {ow["main"]["temp_max"]}, templow = {ow["main"]["temp_min"]}, humidity = {ow["main"]["humidity"]}, weather = {ow["weather"]["description"]}, sunrise = {ow["sys"]["sunrise"]}, sunset = {ow["sys"]["sunset"]} WHERE name = "current"''')
+        dbupdate(f'''UPDATE outside SET timestamp = '{ow["dt"]}', tempnow = {ow["main"]["temp"]}, temphi = {ow["main"]["temp_max"]}, templow = {ow["main"]["temp_min"]}, humidity = {ow["main"]["humidity"]}, weather = {ow["weather"][0]["description"]}, sunrise = {ow["sys"]["sunrise"]}, sunset = {ow["sys"]["sunset"]} WHERE name = "current"''')
 
 
 onalarm = timer() - 3600
