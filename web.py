@@ -125,6 +125,7 @@ def index():
         tavg = float_trunc_1dec(sum(t) / len(t))
         havg = float_trunc_1dec(sum(h) / len(h))
         if livedata is not None:
+            log.debug(f'Livedata: {livedata}')
             b = 0 + (100 - 0) * ((livedata[1] - 100000) / (300 - 100000))
             if int(b) < 0:
                 light2 = 0
