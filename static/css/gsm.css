@@ -1,0 +1,25 @@
+body {
+    margin: 0px;
+    padding: 0px;
+    color: #7f7467;
+    font-family: Tahoma, Geneva, sans-serif;
+    font-size: 14px;
+    line-height: 1.5em;
+    background-color: #07080a;
+    background-image: url(/static/images/tooplate_body.jpg);
+    background-size: cover;
+}
+
+a, a:link, a:visited { color: #f3c331; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+p { margin: 0 0 15px 0; padding: 0; }
+img { border: none; }
+
+h1, h2, h3, h4, h5, h6 { color: #f3c331; font-family: Tahoma, Geneva, sans-serif; }
+h1 { font-size: 20px; margin: 0 0 0px 0; font-weight: normal; }
+h2 { font-size: 18px; margin: 0 0 0px 0; font-weight: normal; }
+h3 { font-size: 16px; margin: 0 0 0px 0; padding: 0; font-weight: normal; }
+h4 { font-size: 14px; margin: 0 0 0px 0; padding: 0; font-weight: normal; }
+h5 { font-size: 12px; margin: 0 0 0px 0; padding: 0; font-weight: normal; }
+h6 { font-size: 10px; margin: 0 0 0px 0; padding: 0; font-color: #999999; }

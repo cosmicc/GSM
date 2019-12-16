@@ -1,4 +1,10 @@
 <html>
+<head>
+<meta name="description" content="Environment Sensor" />
+<link rel="stylesheet" href="{{url_for('static', filename='css/gsm.css?ver=1.1')}}" />
+</head>
+
+<body>
 <p>Darkness:  0 = Bright  -  300,000+ = Pitch Black<br>Lightscale:  0 = Dark  -  100 = Light</p>
 
 <font face="helvetica">
@@ -29,4 +35,5 @@ Next Full Moon in {{ fmd }} Days on {{ convdate(moondata['Full Moon'].__str__())
 <br>
 <h2>No Alerts</h2>
 {% endif %}
+</body>
 </html>

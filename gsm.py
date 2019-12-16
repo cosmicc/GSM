@@ -87,6 +87,7 @@ if args.reset:
     cursor.execute('INSERT INTO general (name, timestamp, light, temp, humidity) VALUES ("livedata", "2019-01-01 00:00", "0", "0.0", "0.0")')
     cursor.execute('INSERT INTO general (name, timestamp, light, temp, humidity) VALUES ("lasthidon", "2019-01-01 00:00", "0", "0.0", "0.0")')
     cursor.execute('INSERT INTO general (name, timestamp, light, temp, humidity) VALUES ("lasthidoff", "2019-01-01 00:00", "0", "0.0", "0.0")')
+    cursor.execute('INSERT INTO outside (name) VALUES ("current")')
 db.commit()
 db.close()
 if args.reset:
