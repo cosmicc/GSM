@@ -81,12 +81,12 @@ cursor.execute('CREATE TABLE IF NOT EXISTS general(id INTEGER PRIMARY KEY, name 
 cursor.execute('CREATE TABLE IF NOT EXISTS outside(id INTEGER PRIMARY KEY, name TEXT, timestamp INTEGER, tempnow REAL, temphi REAL, templow REAL, humidity REAL, weather TEXT, sunrise INTEGER, sunset INTEGER)')
 # mcursor.execute('INSERT INTO general (name) VALUES ("lastdata")')
 if args.reset:
-    cursor.execute('INSERT INTO general (name) VALUES ("laston")')
-    cursor.execute('INSERT INTO general (name) VALUES ("lastoff")')
+    cursor.execute('INSERT INTO general (name, timestamp, light, temp, humidity) VALUES ("laston", "2019-01-01 00:00", "0", "0.0", "0.0")')
+    cursor.execute('INSERT INTO general (name, timestamp, light, temp, humidity) VALUES ("lastoff", "2019-01-01 00:00", "0", "0.0", "0.0")')
     cursor.execute('INSERT INTO general (name) VALUES ("lighthours")')
-    cursor.execute('INSERT INTO general (name) VALUES ("livedata")')
-    cursor.execute('INSERT INTO general (name) VALUES ("lasthidon")')
-    cursor.execute('INSERT INTO general (name) VALUES ("lasthidoff")')
+    cursor.execute('INSERT INTO general (name, timestamp, light, temp, humidity) VALUES ("livedata", "2019-01-01 00:00", "0", "0.0", "0.0")')
+    cursor.execute('INSERT INTO general (name, timestamp, light, temp, humidity) VALUES ("lasthidon", "2019-01-01 00:00", "0", "0.0", "0.0")')
+    cursor.execute('INSERT INTO general (name, timestamp, light, temp, humidity) VALUES ("lasthidoff", "2019-01-01 00:00", "0", "0.0", "0.0")')
 db.commit()
 db.close()
 if args.reset:
@@ -206,9 +206,6 @@ def get_outside_weather():
     if response.ok:
         ow = json.loads(response.content)
         log.debug(f'OWM: {ow}')
-        log.debug(f'dt: {ow["dt"]}')
-        log.debug(f'wd: {ow["weather"][0]["description"]}')
-        log.debug(f'dt: {ow["main"]["humidity"]}')
         dbupdate(f'''UPDATE outside SET timestamp = '{ow["dt"]}', tempnow = {ow["main"]["temp"]}, temphi = {ow["main"]["temp_max"]}, templow = {ow["main"]["temp_min"]}, humidity = {ow["main"]["humidity"]}, weather = '{ow["weather"][0]["description"]}', sunrise = {ow["sys"]["sunrise"]}, sunset = {ow["sys"]["sunset"]} WHERE name = "current"''')
 
 
