@@ -53,12 +53,12 @@ if args.console:
     log.configure(
         handlers=[dict(sink=sys.stdout, level=loglevel, backtrace=True, format='<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>'),
                   dict(sink=logfile, level="INFO", enqueue=True, serialize=False, rotation="1 MB", retention="14 days", compression="gz")],
-                  levels=[dict(name="STARTUP", no=38, icon="¤", color="<yellow>")], extra={"common_to_all": "default"}, activation=[("my_module.secret", False), ("another_library.module", True)])
+        levels=[dict(name="STARTUP", no=38, icon="¤", color="<yellow>")], extra={"common_to_all": "default"}, activation=[("my_module.secret", False), ("another_library.module", True)])
 else:
     log.configure(
         handlers=[dict(sink=sys.stderr, level="CRITICAL", backtrace=True, format='<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>'),
                   dict(sink=logfile, level="INFO", enqueue=True, serialize=False, rotation="1 MB", retention="14 days", compression="gz")],
-                  levels=[dict(name="STARTUP", no=38, icon="¤", color="<yellow>")], extra={"common_to_all": "default"}, activation=[("my_module.secret", False), ("another_library.module", True)])
+        levels=[dict(name="STARTUP", no=38, icon="¤", color="<yellow>")], extra={"common_to_all": "default"}, activation=[("my_module.secret", False), ("another_library.module", True)])
 
 log.log('STARTUP', 'GSM is starting up')
 
@@ -188,16 +188,16 @@ def normalizeit(value):
 
 
 def pc_read(RCpin):
-        reading = 0
-        GPIO.setup(RCpin, GPIO.OUT)
-        GPIO.output(RCpin, GPIO.LOW)
-        sleep(0.1)
+    reading = 0
+    GPIO.setup(RCpin, GPIO.OUT)
+    GPIO.output(RCpin, GPIO.LOW)
+    sleep(0.1)
 
-        GPIO.setup(RCpin, GPIO.IN)
-        # This takes about 1 millisecond per loop cycle
-        while (GPIO.input(RCpin) == GPIO.LOW) and reading < 500000:
-            reading += 1
-        return reading
+    GPIO.setup(RCpin, GPIO.IN)
+    # This takes about 1 millisecond per loop cycle
+    while (GPIO.input(RCpin) == GPIO.LOW) and reading < 500000:
+        reading += 1
+    return reading
 
 
 def get_outside_weather():
@@ -206,6 +206,9 @@ def get_outside_weather():
     if response.ok:
         ow = json.loads(response.content)
         log.debug(f'OWM: {ow}')
+        log.debug(f'dt: {ow["dt"]}')
+        log.debug(f'wd: {ow["weather"]["description"]}')
+        log.debug(f'dt: {ow["main"]["humidity"]}')
         dbupdate(f'''UPDATE outside SET timestamp = '{ow["dt"]}', tempnow = {ow["main"]["temp"]}, temphi = {ow["main"]["temp_max"]}, templow = {ow["main"]["temp_min"]}, humidity = {ow["main"]["humidity"]}, weather = {ow["weather"]["description"]}, sunrise = {ow["sys"]["sunrise"]}, sunset = {ow["sys"]["sunset"]} WHERE name = "current"''')
 
 
