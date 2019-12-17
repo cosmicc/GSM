@@ -29,3 +29,5 @@ def bcast():
             client.sendto(ipaddr.encode(), ('255.255.255.255', 37030))
             log.debug(f'Sent GSM_DISCOVER response: {ipaddr}')
         sleep(1)
+
+bcast()
