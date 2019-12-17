@@ -12,6 +12,7 @@
 
 <body>
 <div class="cbox">
+<div class="cbox-content" id="cbox-content">
 <center><h2>{{ convtime(timestamp) }}</h2></center><br>
 {{ lightstring }}  ({{ light2 }}/100)<br>
 Darkness: {{ light }} Last Hour Avg: {{ lavg }}<br>
@@ -38,6 +39,7 @@ Next Full Moon in {{ fmd }} Days on {{ convdate(moondata['Full Moon'].__str__())
 <br>
 <h2>No Alerts</h2>
 {% endif %}
+</div>
 </div>
 </body>
 </html>

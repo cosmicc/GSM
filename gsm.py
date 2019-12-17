@@ -311,6 +311,7 @@ while True:
             oweather = timer()
             log.info('New Outdoor weather information recieved')
             get_outside_weather()
+        sleep(1)
 
     except KeyboardInterrupt:
         log.critical(f'Keyboard Interrupt')
