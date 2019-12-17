@@ -21,6 +21,8 @@ from modules.rpiboard import Led, cpu_temp
 from sms import sendsms
 from timebetween import is_time_between
 from web import web
+from modules.broadcast import bcast
+
 
 IN_RC = 17       # Input pin
 
@@ -96,6 +98,9 @@ if args.reset:
     os.remove("/var/log/alarms.log")
     exit(0)
 
+log.debug('Starting broadcast thread')
+bcast_thread = threading.Thread(name='broadcast', target=bcast, daemon=True)
+bcast_thread.start()
 
 log.debug('Starting web thread')
 web_thread = threading.Thread(name='web_thread', target=web, daemon=True)
