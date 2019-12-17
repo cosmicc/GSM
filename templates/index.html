@@ -1,12 +1,18 @@
 <html>
 <head>
 <meta name="description" content="Environment Sensor" />
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/gsm.css') }}?v1.9">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/gsm.css') }}?v1.11">
+<script type="text/javascript">
+    var pageLoader = setInterval(function(){
+            $("#cbox-content").load(" #cbox-content");
+        }, 60000);
+    starttimer();
+</script>
 </head>
 
 <body>
 <div class="cbox">
-<h2>{{ convtime(timestamp) }}<br>
+<center><h2>{{ convtime(timestamp) }}</h2></center><br>
 {{ lightstring }}  ({{ light2 }}/100)<br>
 Darkness: {{ light }} Last Hour Avg: {{ lavg }}<br>
 Current Temp: {{ temp }}&#176;F Last Hour Trend ({{ ttrend }}&#176;F)<br>
