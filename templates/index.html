@@ -9,7 +9,7 @@
 <p>Darkness:  0 = Bright  -  300,000+ = Pitch Black<br>Lightscale:  0 = Dark  -  100 = Light</p>
 
 <font face="helvetica">
-
+<div class="cbox">
 <h2>{{ convtime(timestamp) }}<br>
 {{ lightstring }}  ({{ light2 }}/100)<br>
 Darkness: {{ light }} Last Hour Avg: {{ lavg }}<br>
@@ -36,5 +36,6 @@ Next Full Moon in {{ fmd }} Days on {{ convdate(moondata['Full Moon'].__str__())
 <br>
 <h2>No Alerts</h2>
 {% endif %}
+</div>
 </body>
 </html>
