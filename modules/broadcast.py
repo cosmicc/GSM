@@ -23,13 +23,9 @@ def bcast():
     client.bind(("", 37020))
     while True:
         (data, addr) = client.recvfrom(1024)
-        if not len(data):
-            sleep(1)
-            break
-        log.debug(f"Received Broadcast: {data.decode()}")
+        log.debug(f"Received Broadcast: {data.decode()} from {addr[0]}")
         if data.decode() == 'GSM_DISCOVER':
             server.sendto(ipaddr.encode(), ('255.255.255.255', 37030))
             log.debug(f'Sent GSM_DISCOVER response: {ipaddr}')
-        sleep(1)
 
 bcast()
