@@ -1,14 +1,10 @@
 <html>
 <head>
 <meta name="description" content="Environment Sensor" />
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/gsm.css') }}?v1.6">
-
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/gsm.css') }}?v1.7">
 </head>
 
 <body>
-<p>Darkness:  0 = Bright  -  300,000+ = Pitch Black<br>Lightscale:  0 = Dark  -  100 = Light</p>
-
-<font face="helvetica">
 <div class="cbox">
 <h2>{{ convtime(timestamp) }}<br>
 {{ lightstring }}  ({{ light2 }}/100)<br>
