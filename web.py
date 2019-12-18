@@ -181,9 +181,14 @@ def getdata():
             lp.append(each[0])
             t.append(each[1])
             h.append(each[2])
-        lavg = int(sum(lp) / len(lp))
-        tavg = float_trunc_1dec(sum(t) / len(t))
-        havg = float_trunc_1dec(sum(h) / len(h))
+        try:
+            lavg = int(sum(lp) / len(lp))
+            tavg = float_trunc_1dec(sum(t) / len(t))
+            havg = float_trunc_1dec(sum(h) / len(h))
+        except:
+            lavg = 1
+            tavg = 1
+            havg = 1
         if livedata[1] is not None:
             b = 0 + (100 - 0) * ((livedata[1] - 100000) / (300 - 100000))
             if int(b) < 0:
