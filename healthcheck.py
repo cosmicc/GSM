@@ -35,7 +35,7 @@ else:
 
 
 def is_internet_up():
-    response = subprocess.run(["/usr/sbin/fping", "1.1.1.1"], stderr=subprocess.PIPE)
+    response = subprocess.run(["/usr/sbin/fping", "1.1.1.1"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     if response.returncode == 0:
         return True
     else:
@@ -44,7 +44,7 @@ def is_internet_up():
 
 
 def is_gateway_up():
-    response = subprocess.run(["/usr/sbin/fping", "1.1.1.1"], stderr=subprocess.PIPE)
+    response = subprocess.run(["/usr/sbin/fping", "1.1.1.1"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     if response.returncode == 0:
         return True
     else:
