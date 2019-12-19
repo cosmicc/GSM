@@ -70,8 +70,8 @@ def get_ip_addr():
 
 
 if args.checknow:
-    print(f'IP: {get_ip_addr}')
+    print(f'IP: {get_ip_addr()}')
     print(f'GATEWAY: {get_gateway()}')
-    print(f'GATEWAY REACHABLE: {is_gateway_up}')
-    print(f'INTERNET REACHABLE: {is_internet_up}')
+    print(f'GATEWAY REACHABLE: {is_gateway_up()}')
+    print(f'INTERNET REACHABLE: {is_internet_up()}')
     exit(0)
