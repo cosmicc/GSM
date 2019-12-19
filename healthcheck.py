@@ -19,8 +19,6 @@ args = parser.parse_args()
 
 if args.debug:
     loglevel = "DEBUG"
-elif args.info:
-    loglevel = "INFO"
 else:
     loglevel = "WARNING"
 
