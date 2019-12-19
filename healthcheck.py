@@ -34,17 +34,8 @@ else:
         levels=[dict(name="STARTUP", no=38, icon="¤", color="<yellow>")], extra={"common_to_all": "default"}, activation=[("my_module.secret", False), ("another_library.module", True)])
 
 
-def is_internet_up():
-    response = subprocess.run(["/usr/sbin/fping", "1.1.1.1"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    if response.returncode == 0:
-        return True
-    else:
-        log.debug('Internet not reachable')
-        return False
-
-
-def is_gateway_up():
-    response = subprocess.run(["/usr/sbin/fping", "1.1.1.1"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+def is_host_up(host):
+    response = subprocess.run(["/usr/sbin/fping", host], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     if response.returncode == 0:
         return True
     else:
@@ -72,6 +63,8 @@ def get_ip_addr():
 if args.checknow:
     print(f'IP: {get_ip_addr()}')
     print(f'GATEWAY: {get_gateway()}')
-    print(f'GATEWAY REACHABLE: {is_gateway_up()}')
-    print(f'INTERNET REACHABLE: {is_internet_up()}')
+    print(f'GATEWAY REACHABLE: {is_host_up(get_gateway())}')
+    print(f'INTERNET REACHABLE: {is_host_up('1.1.1.1')}')
+    print(f'VPN REACHABLE: {is_host_up('172.25.1.10')}')
+
     exit(0)
