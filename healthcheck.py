@@ -93,7 +93,13 @@ if args.checknow:
     print(f'GATEWAY REACHABLE: {is_host_up(get_gateway())}')
     print(f'INTERNET REACHABLE: {is_host_up("1.1.1.1")}')
     print(f'VPN REACHABLE: {is_host_up("172.25.1.10")}')
-    print(f'WIFI INFO: {get_wifi_info()}')
+    print(f'WIFI INFO:')
+    wifiinfo = get_wifi_info()
+    print(f'    SSID: {wifiinfo["ssid"]}')
+    print(f'    SIGNAL: {wifiinfo["signal"]}')
+    print(f'    SIGNAL PERCENT: {wifiinfo["signal_percent"]}')
+    print(f'    LINK QUALITY: {wifiinfo["linkqual"]}')
+    print(f'    BITRATE: {wifiinfo["bitrate"]}')
     exit(0)
 
 loop = 0
