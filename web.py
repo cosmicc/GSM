@@ -63,6 +63,13 @@ def dbselect(cmd, fetchall=True):
         return a
 
 
+@app.context_processor
+def _getlivedata():
+    def getlivedata():
+        return dbselect('''SELECT timestamp, light, temp, humidity FROM general WHERE name = "livedata"''', fetchall=False)
+    return dict(getlivedata=getlivedata)
+
+
 @log.catch
 @app.context_processor
 def _statpull():
