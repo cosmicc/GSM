@@ -64,7 +64,7 @@ if args.checknow:
     print(f'IP: {get_ip_addr()}')
     print(f'GATEWAY: {get_gateway()}')
     print(f'GATEWAY REACHABLE: {is_host_up(get_gateway())}')
-    print(f'INTERNET REACHABLE: {is_host_up('1.1.1.1')}')
-    print(f'VPN REACHABLE: {is_host_up('172.25.1.10')}')
+    print(f'INTERNET REACHABLE: {is_host_up("1.1.1.1")}')
+    print(f'VPN REACHABLE: {is_host_up("172.25.1.10")}')
 
     exit(0)
