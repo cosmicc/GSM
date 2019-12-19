@@ -98,7 +98,7 @@ if args.checknow:
     print(f'    SSID: {wifiinfo["ssid"]}')
     print(f'    SIGNAL: {wifiinfo["signal"]}')
     print(f'    SIGNAL PERCENT: {wifiinfo["signal_percent"]}')
-    print(f'    LINK QUALITY: {wifiinfo["linkqual"]}')
+    print(f'    LINK QUALITY: {wifiinfo["quality"]}')
     print(f'    BITRATE: {wifiinfo["bitrate"]}')
     exit(0)
 
@@ -121,6 +121,3 @@ while True:
     else:
         if not get_ip_addr():
             gatewaymissed += 1
-
-
-
