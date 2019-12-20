@@ -20,7 +20,7 @@
 <br>
 <h2>Humidity:</h2> <h3>{{ getlivedata()['humidity'] }}%</h3> <h2>Last Hour Trend</h2> <h3>({{ getlivedata()['htrend'] }}%)</h3><br>
 <h2>
-<h2>Last Lights on:</h2> <h3>{{ convtime(getlaston()[0]) }}</h3>  <h2>Temp:</h2> <h3>{{ getlaston()[2] }}&#176;F</h3>  <h2>Humidity:</h2> <h3>{{ getlaston()[3] }}%</h3>
+<h2>Last Lights on:</h2> <h3>{{ convtime(getlaston()[0]) }}</h3> <h3>getlastonhours()</h3> <h2>Temp:</h2> <h3>{{ getlaston()[2] }}&#176;F</h3>  <h2>Humidity:</h2> <h3>{{ getlaston()[3] }}%</h3>
 <br>
 <h2>Last Lights off:</h2> <h3>{{ convtime(getlastoff()[0]) }}</h3> <h2>Temp:</h2> <h3>{{ getlastoff()[2] }}&#176;F</h3>  <h2>Humidity:</h2> <h3>{{ getlastoff()[3] }}%</h3>
 <br>
@@ -38,7 +38,6 @@
 <br>
 <h2>Today High:</h2> <h3>{{ getweatherdata()[1] }}&#176;F</h3> <h2>Today Low:</h2> <h3>{{ getweatherdata()[2] }}&#176;F</h3>
 <br>
-{{ getlastonhours() }}
 <br>
 {% if hasalarms %}
 <h2>Alerts:</h2>
