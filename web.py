@@ -71,6 +71,24 @@ def _getlivedata():
 
 
 @app.context_processor
+def _getlightdata():
+    def getlightdata():
+        livedata = dbselect('''SELECT light FROM general WHERE name = "livedata"''', fetchall=False)
+        if livedata[0] is not None:
+            b = 0 + (100 - 0) * ((livedata[1] - 100000) / (300 - 100000))
+            if int(b) < 0:
+                light2 = 0
+            elif int(b) > 100:
+                light2 = 100
+            else:
+                light2 = int(b)
+        else:
+            light2 = 'N/A'
+        return light2
+    return dict(getlightdata=getlightdata)
+
+
+@app.context_processor
 def _laston():
     def laston():
         return dbselect('''SELECT timestamp, light, temp, humidity FROM general WHERE name = "laston" LIMIT 1''', fetchall=False)

@@ -13,14 +13,12 @@
 <body>
 <div class="cbox">
 <div class="cbox-content" id="cbox-content">
-<center><h2>{{ convtime(timestamp) }}</h2></center><br>
-{{ lightstring }}  ({{ light2 }}/100)<br>
-Darkness: {{ light }} Last Hour Avg: {{ lavg }}<br>
-Current Temp: {{ temp }}&#176;F Last Hour Trend ({{ ttrend }}&#176;F)<br>
-Humidity: {{ humidity }}% Last Hour Trend ({{ htrend }}%)<br>
-
+<center><h1>{{ convtime(timestamp) }}</h1></center><br>
+<h2>{{ lightstring }}  ({{ getlightdata() }}/100)</h2><br>
+<h2>Current Temp:</h2> <h3>{{ temp }}&#176;F</h3> <h2>Last Hour Trend</h2> <h3>({{ ttrend }}&#176;F)</h3><br>
+<h2>Humidity:</h2> <h3>{{ humidity }}%</h3> <h2>Last Hour Trend</h2> <h3>({{ htrend }}%)</h3><br>
 <h2>
-Last Lights on: {{ convtime(laston[0]) }}  Temp: {{ laston[2] }}&#176;F  Humidity: {{ laston[3] }}%<br>
+<h2>Last Lights on:</h2> <h3>{{ convtime(laston[0]) }}</h3>  Temp: {{ laston[2] }}&#176;F  Humidity: {{ laston[3] }}%<br>
 Last Lights off: {{ convtime(lastoff[0]) }} Temp: {{ lastoff[2] }}&#176;F  Humidity: {{ lastoff[3] }}%<br>
 Last Light Cycle: {{ lighthours }} Hours</h2>
 
