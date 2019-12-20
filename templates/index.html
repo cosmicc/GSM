@@ -16,8 +16,7 @@
 <center><h1>{{ convtime(timestamp) }}</h1></center><br>
 <h2>{{ lightstring }}  ({{ getlightdata() }}/100)</h2>
 <br>
-{{ livedata = getlivedata() }}
-<h2>Current Temp:</h2> <h3>{{ livedata['temp'] }}&#176;F</h3> <h2>Last Hour Trend</h2> <h3>({{ getlivedata()['ttrend'] }}&#176;F)</h3>
+<h2>Current Temp:</h2> <h3>{{ getlivedata()['temp'] }}&#176;F</h3> <h2>Last Hour Trend</h2> <h3>({{ getlivedata()['ttrend'] }}&#176;F)</h3>
 <br>
 <h2>Humidity:</h2> <h3>{{ getlivedata()['humidity'] }}%</h3> <h2>Last Hour Trend</h2> <h3>({{ getlivedata()['htrend'] }}%)</h3><br>
 <h2>
