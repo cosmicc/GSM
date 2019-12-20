@@ -173,17 +173,17 @@ def _getlightdata():
 
 
 @app.context_processor
-def _laston():
-    def laston():
+def _getlaston():
+    def getlaston():
         return dbselect('''SELECT timestamp, light, temp, humidity FROM general WHERE name = "laston" LIMIT 1''', fetchall=False)
-    return dict(laston=laston)
+    return dict(getlaston=getlaston)
 
 
 @app.context_processor
-def _lastoff():
-    def lastoff():
+def _getlastoff():
+    def getlastoff():
         return dbselect('''SELECT timestamp, light, temp, humidity FROM general WHERE name = "lastoff" LIMIT 1''', fetchall=False)
-    return dict(lastoff=lastoff)
+    return dict(getlastoff=getlastoff)
 
 
 @log.catch
