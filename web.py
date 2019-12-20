@@ -202,58 +202,54 @@ def index():
 @log.catch
 @app.route("/data")
 def getdata():
+    db = sqlite3.connect('/var/opt/lightdata.db')
+    cursor = db.cursor()
+    cursor.execute('''SELECT timestamp, light, temp, humidity FROM general WHERE name = "livedata"''')
+    livedata = cursor.fetchone()
+    cursor.execute('''SELECT timestamp, value, type FROM alarms ORDER BY id DESC LIMIT 1''')
+    alarmdata = cursor.fetchone()
+    cursor.execute('''SELECT light, temp, humidity FROM data ORDER BY id DESC LIMIT 12''')
+    last30 = cursor.fetchall()
+    cursor.execute('''SELECT temp FROM general WHERE name = "lighthours"''')
+    lighthours = cursor.fetchone()
+    db.close()
+    lp = []
+    t = []
+    h = []
+    for each in last30:
+        lp.append(each[0])
+        t.append(each[1])
+        h.append(each[2])
     try:
-        db = sqlite3.connect('/var/opt/lightdata.db')
-        cursor = db.cursor()
-        cursor.execute('''SELECT timestamp, light, temp, humidity FROM general WHERE name = "livedata"''')
-        livedata = cursor.fetchone()
-        cursor.execute('''SELECT timestamp, value, type FROM alarms ORDER BY id DESC LIMIT 1''')
-        alarmdata = cursor.fetchone()
-        cursor.execute('''SELECT light, temp, humidity FROM data ORDER BY id DESC LIMIT 12''')
-        last30 = cursor.fetchall()
-        cursor.execute('''SELECT temp FROM general WHERE name = "lighthours"''')
-        lighthours = cursor.fetchone()
-        db.close()
-        lp = []
-        t = []
-        h = []
-        for each in last30:
-            lp.append(each[0])
-            t.append(each[1])
-            h.append(each[2])
-        try:
-            lavg = int(sum(lp) / len(lp))
-            tavg = float_trunc_1dec(sum(t) / len(t))
-            havg = float_trunc_1dec(sum(h) / len(h))
-        except:
-            lavg = 1
-            tavg = 1
-            havg = 1
-        if livedata[1] is not None:
-            b = 0 + (100 - 0) * ((livedata[1] - 100000) / (300 - 100000))
-            if int(b) < 0:
-                light2 = 0
-            elif int(b) > 100:
-                light2 = 100
-            else:
-                light2 = int(b)
-        else:
-            light2 = 'N/A'
-        if alarmdata is not None:
-            hasalarms = True
-        else:
-            hasalarms = False
-        ttrend = float_trunc_1dec(livedata[2] - tavg)
-        htrend = float_trunc_1dec(livedata[3] - havg)
-        if ttrend > 0:
-            ttrend = f'+{ttrend}'
-        if htrend > 0:
-            htrend = f'+{htrend}'
-        resp = {'timestamp': livedata[0], 'darkness': f'{livedata[1]}', 'lightscale': light2, 'tempc': livedata[2], 'tempf': f2c(livedata[2]), 'humidity': livedata[3], 'lighthours': lighthours[0], 'lightavg': lavg, 'tempavg': tavg, 'humidityavg': havg, 'temptrend': ttrend, 'humiditytrend': htrend, 'hasalarms': hasalarms, 'alarms': alarmdata}
-        return jsonify(resp)
+        lavg = int(sum(lp) / len(lp))
+        tavg = float_trunc_1dec(sum(t) / len(t))
+        havg = float_trunc_1dec(sum(h) / len(h))
     except:
-        log.exception(f'Error in web in data generation')
-        return 'Error', 400
+        lavg = 1
+        tavg = 1
+        havg = 1
+    if livedata[1] is not None:
+        b = 0 + (100 - 0) * ((livedata[1] - 100000) / (300 - 100000))
+        if int(b) < 0:
+            light2 = 0
+        elif int(b) > 100:
+            light2 = 100
+        else:
+            light2 = int(b)
+    else:
+        light2 = 'N/A'
+    if alarmdata is not None:
+        hasalarms = True
+    else:
+        hasalarms = False
+    ttrend = float_trunc_1dec(livedata[2] - tavg)
+    htrend = float_trunc_1dec(livedata[3] - havg)
+    if ttrend > 0:
+        ttrend = f'+{ttrend}'
+    if htrend > 0:
+        htrend = f'+{htrend}'
+    resp = {'timestamp': livedata[0], 'darkness': f'{livedata[1]}', 'lightscale': light2, 'tempc': livedata[2], 'tempf': f2c(livedata[2]), 'humidity': livedata[3], 'lighthours': lighthours[0], 'lightavg': lavg, 'tempavg': tavg, 'humidityavg': havg, 'temptrend': ttrend, 'humiditytrend': htrend, 'hasalarms': hasalarms, 'alarms': alarmdata}
+    return jsonify(resp)
 
 
 @log.catch
