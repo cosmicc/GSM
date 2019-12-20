@@ -30,6 +30,8 @@
 <br>
 <h2>Next Full Moon in</h2> <h3>{{ fmd }} Days</h3> on <h3>{{ convdate(moondata['Full Moon'].__str__())}}</h3>
 <br>
+<h2>Current Weather:</h2> <h3>{{ getweatherdata[0] }}</h3> <h3>{{ getweatherdata()[4] }}</h3>
+
 {% if hasalarms %}
 <h2>Alerts:</h2>
 {% for each in alarms %}
@@ -38,9 +40,6 @@
 </font>
 <a href="/clearalarms">Clear Alarms</a>
 {% else %}
-<br>
-{{ getlivedata() }}
-<br>
 <h2>No Alerts</h2>
 {% endif %}
 </div>

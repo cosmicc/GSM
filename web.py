@@ -70,6 +70,13 @@ def _getlivedata():
     return dict(getlivedata=getlivedata)
 
 
+@app.context_processor
+def _getweatherdata():
+    def getweatherdata():
+        return dbselect('''SELECT tempnow, temphi, templow, humidity, weather, sunrise, sunset FROM outside WHERE name = "current"''', fetchall=False)
+    return dict(getweatherdata=getweatherdata)
+
+
 @log.catch
 @app.context_processor
 def _getlightdata():
