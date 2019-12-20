@@ -75,8 +75,8 @@ def _getlivedata():
 def _getlightdata():
     def getlightdata():
         livedata = dbselect('''SELECT light FROM general WHERE name = "livedata"''', fetchall=False)
-        if livedata[0] is not None:
-            b = 0 + (100 - 0) * ((livedata[1] - 100000) / (300 - 100000))
+        if livedata is not None:
+            b = 0 + (100 - 0) * ((livedata[0] - 100000) / (300 - 100000))
             if int(b) < 0:
                 light2 = 0
             elif int(b) > 100:
@@ -193,7 +193,6 @@ def index():
     else:
         lightstring = f'All Lights are ON'
     return render_template('index.html', timestamp=livedata[0], light=f'{livedata[1]:,d}', light2=light2, temp=livedata[2], temp2=f2c(livedata[2]), humidity=livedata[3], laston=laston, lastoff=lastoff, lighthours=lighthours[0], currentmoon=astdata.currentphase, nextmoon=astdata.nextphase, moondata=astdata.moondata, npd=td.days, fmd=tr.days, lavg=lavg, tavg=tavg, havg=havg, ttrend=ttrend, htrend=htrend, wifi_info=get_wifi_info(), hasalarms=hasalarms, alarms=alarmdata, lightstring=lightstring)
-
 
 
 @log.catch
