@@ -200,7 +200,7 @@ def _getlaston():
 @app.context_processor
 def _getlastonhours():
     def getlastonhours():
-        tme = dbselect('''SELECT timestamp WHERE name = "laston" LIMIT 1''', fetchall=False)
+        tme = dbselect('''SELECT timestamp FROM general WHERE name = "laston" LIMIT 1''', fetchall=False)
         return elapsedTime(datetime.now(), tme)
     return dict(getlastonhours=getlastonhours)
 
