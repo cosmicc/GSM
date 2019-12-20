@@ -201,7 +201,7 @@ def _getlaston():
 def _getlastonhours():
     def getlastonhours():
         tme = dbselect('''SELECT timestamp FROM general WHERE name = "laston" LIMIT 1''', fetchall=False)
-        return elapsedTime(datetime.now(), int(tme[0]))
+        return elapsedTime(datetime.now(), datetime.strptime(tme[0], '%Y-%m-%d %H:%M'))
     return dict(getlastonhours=getlastonhours)
 
 
