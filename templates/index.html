@@ -36,6 +36,8 @@
 <br>
 <h2>Current Outdoor Humidity:</h2> <h3>{{ getweatherdata()[3] }}%</h3>
 <br>
+<h2>Today High:</h2> <h3>{{ getweatherdata()[1] }}%</h3> <h2>Today Low:</h2> <h3>{{ getweatherdata()[2] }}%</h3>
+<br>
 {% if hasalarms %}
 <h2>Alerts:</h2>
 {% for each in alarms %}
