@@ -173,6 +173,24 @@ def _getlightdata():
 
 
 @app.context_processor
+def _getastdata():
+    def getastdata():
+        astdata.update()
+        return astdata
+    return dict(getastdata=getastdata)
+
+
+@app.context_processor
+def _getmoontime():
+    def getmoontime():
+        astdata.update()
+        td = astdata.nextphase[1] - datetime.now().date()
+        tr = astdata.moondata["Full Moon"] - datetime.now().date()
+        return [td.days, tr.days]
+    return dict(getmoontime=getmoontime)
+
+
+@app.context_processor
 def _getlaston():
     def getlaston():
         return dbselect('''SELECT timestamp, light, temp, humidity FROM general WHERE name = "laston" LIMIT 1''', fetchall=False)
