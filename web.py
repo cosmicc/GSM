@@ -2,7 +2,7 @@ import logging
 # import pandas as pd
 import sqlite3
 from datetime import datetime
-
+from loguru import logger as log
 from flask import Flask, jsonify, redirect, render_template, url_for
 from loguru import logger as log
 from modules.extras import f2c, float_trunc_1dec
@@ -70,6 +70,7 @@ def _getlivedata():
     return dict(getlivedata=getlivedata)
 
 
+@log.catch
 @app.context_processor
 def _getlightdata():
     def getlightdata():
