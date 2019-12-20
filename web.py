@@ -2,7 +2,7 @@ import logging
 # import pandas as pd
 import sqlite3
 from datetime import datetime
-from loguru import logger as log
+
 from flask import Flask, jsonify, redirect, render_template, url_for
 from loguru import logger as log
 from modules.extras import f2c, float_trunc_1dec
@@ -137,66 +137,63 @@ def _statpull():
 @log.catch
 @app.route("/")
 def index():
-    try:
-        db = sqlite3.connect('/var/opt/lightdata.db')
-        cursor = db.cursor()
-        cursor.execute('''SELECT timestamp, light, temp, humidity FROM general WHERE name = "livedata"''')
-        livedata = cursor.fetchone()
-        cursor.execute('''SELECT timestamp, value, type FROM alarms ORDER BY id DESC LIMIT 10''')
-        alarmdata = cursor.fetchall()
-        cursor.execute('''SELECT timestamp, light, temp, humidity FROM general WHERE name = "laston" LIMIT 1''')
-        laston = cursor.fetchone()
-        cursor.execute('''SELECT timestamp, light, temp, humidity FROM general WHERE name = "lastoff" LIMIT 1''')
-        lastoff = cursor.fetchone()
-        cursor.execute('''SELECT light, temp, humidity FROM data ORDER BY id DESC LIMIT 12''')
-        last30 = cursor.fetchall()
-        cursor.execute('''SELECT temp FROM general WHERE name = "lighthours"''')
-        lighthours = cursor.fetchone()
-        db.close()
-        astdata.update()
-        lp = []
-        t = []
-        h = []
-        for each in last30:
-            lp.append(each[0])
-            t.append(each[1])
-            h.append(each[2])
-        lavg = int(sum(lp) / len(lp))
-        tavg = float_trunc_1dec(sum(t) / len(t))
-        havg = float_trunc_1dec(sum(h) / len(h))
-        if livedata is not None:
-            log.debug(f'Livedata: {livedata}')
-            b = 0 + (100 - 0) * ((livedata[1] - 100000) / (300 - 100000))
-            if int(b) < 0:
-                light2 = 0
-            elif int(b) > 100:
-                light2 = 100
-            else:
-                light2 = int(b)
+    db = sqlite3.connect('/var/opt/lightdata.db')
+    cursor = db.cursor()
+    cursor.execute('''SELECT timestamp, light, temp, humidity FROM general WHERE name = "livedata"''')
+    livedata = cursor.fetchone()
+    cursor.execute('''SELECT timestamp, value, type FROM alarms ORDER BY id DESC LIMIT 10''')
+    alarmdata = cursor.fetchall()
+    cursor.execute('''SELECT timestamp, light, temp, humidity FROM general WHERE name = "laston" LIMIT 1''')
+    laston = cursor.fetchone()
+    cursor.execute('''SELECT timestamp, light, temp, humidity FROM general WHERE name = "lastoff" LIMIT 1''')
+    lastoff = cursor.fetchone()
+    cursor.execute('''SELECT light, temp, humidity FROM data ORDER BY id DESC LIMIT 12''')
+    last30 = cursor.fetchall()
+    cursor.execute('''SELECT temp FROM general WHERE name = "lighthours"''')
+    lighthours = cursor.fetchone()
+    db.close()
+    astdata.update()
+    lp = []
+    t = []
+    h = []
+    for each in last30:
+        lp.append(each[0])
+        t.append(each[1])
+        h.append(each[2])
+    lavg = int(sum(lp) / len(lp))
+    tavg = float_trunc_1dec(sum(t) / len(t))
+    havg = float_trunc_1dec(sum(h) / len(h))
+    if livedata is not None:
+        log.debug(f'Livedata: {livedata}')
+        b = 0 + (100 - 0) * ((livedata[1] - 100000) / (300 - 100000))
+        if int(b) < 0:
+            light2 = 0
+        elif int(b) > 100:
+            light2 = 100
         else:
-            light2 = 'N/A'
-        td = astdata.nextphase[1] - datetime.now().date()
-        tr = astdata.moondata["Full Moon"] - datetime.now().date()
-        if len(alarmdata) > 0:
-            hasalarms = True
-        else:
-            hasalarms = False
-        ttrend = float_trunc_1dec(livedata[2] - tavg)
-        htrend = float_trunc_1dec(livedata[3] - havg)
-        if ttrend > 0:
-            ttrend = f'+{ttrend}'
-        if htrend > 0:
-            htrend = f'+{htrend}'
-        if livedata[1] > 300000:
-            lightstring = f'All Lights are OFF'
-        elif livedata[1] > 1000:
-            lightstring = f'Secondary Lights are ON'
-        else:
-            lightstring = f'All Lights are ON'
-        return render_template('index.html', timestamp=livedata[0], light=f'{livedata[1]:,d}', light2=light2, temp=livedata[2], temp2=f2c(livedata[2]), humidity=livedata[3], laston=laston, lastoff=lastoff, lighthours=lighthours[0], currentmoon=astdata.currentphase, nextmoon=astdata.nextphase, moondata=astdata.moondata, npd=td.days, fmd=tr.days, lavg=lavg, tavg=tavg, havg=havg, ttrend=ttrend, htrend=htrend, wifi_info=get_wifi_info(), hasalarms=hasalarms, alarms=alarmdata, lightstring=lightstring)
-    except:
-        log.exception(f'Error in web index generation')
-        return 'Error', 400
+            light2 = int(b)
+    else:
+        light2 = 'N/A'
+    td = astdata.nextphase[1] - datetime.now().date()
+    tr = astdata.moondata["Full Moon"] - datetime.now().date()
+    if len(alarmdata) > 0:
+        hasalarms = True
+    else:
+        hasalarms = False
+    ttrend = float_trunc_1dec(livedata[2] - tavg)
+    htrend = float_trunc_1dec(livedata[3] - havg)
+    if ttrend > 0:
+        ttrend = f'+{ttrend}'
+    if htrend > 0:
+        htrend = f'+{htrend}'
+    if livedata[1] > 300000:
+        lightstring = f'All Lights are OFF'
+    elif livedata[1] > 1000:
+        lightstring = f'Secondary Lights are ON'
+    else:
+        lightstring = f'All Lights are ON'
+    return render_template('index.html', timestamp=livedata[0], light=f'{livedata[1]:,d}', light2=light2, temp=livedata[2], temp2=f2c(livedata[2]), humidity=livedata[3], laston=laston, lastoff=lastoff, lighthours=lighthours[0], currentmoon=astdata.currentphase, nextmoon=astdata.nextphase, moondata=astdata.moondata, npd=td.days, fmd=tr.days, lavg=lavg, tavg=tavg, havg=havg, ttrend=ttrend, htrend=htrend, wifi_info=get_wifi_info(), hasalarms=hasalarms, alarms=alarmdata, lightstring=lightstring)
+
 
 
 @log.catch
