@@ -25,6 +25,17 @@ from modules.broadcast import bcast
 
 
 IN_RC = 17       # Input pin
+TEMPHI_THRESHOLD = 80
+TEMPLOW_THRESHOLD = 45
+PRELIGHT_THRESHOLD = 100000
+HIDLIGHT_THRESHOLD = 5000
+DARK_THRESHOLD = 400000
+PRELIGHT_START = time(17, 00)
+HIDLIGHT_START = time(18, 30)
+HIDLIGHT_STOP = time(4, 50)
+PRELIGHT_STOP = time(5, 30)
+DARK_START = time(6, 10)
+DARK_STOP = time(16, 40)
 
 GPIO.setmode(GPIO.BCM)
 
@@ -176,14 +187,6 @@ class tempSensor():
                 return (0, 0)
 
 
-def determinelighthours():
-    db = sqlite3.connect('/var/opt/lightdata.db')
-    cursor = db.cursor()
-    # cursor.execute(''
-    db.commit()
-    db.close()
-
-
 def normalizeit(value):
     b = 0 + (100 - 0) * ((value - 100000) / (300 - 100000))
     if int(b) < 0:
@@ -272,7 +275,7 @@ while True:
             dbupdate(f'''INSERT INTO data(timestamp, light, temp, humidity) VALUES ('{timestamp}',{light},{temp},{humidity})''')
             log.debug('Data saved in longterm database')
 
-        if is_time_between(datetime.now().time(), time(17, 00), time(5, 30)) and light > 100000:  # on light time
+        if is_time_between(datetime.now().time(), PRELIGHT_START, PRELIGHT_STOP) and light > PRELIGHT_THRESHOLD:  # dawn start
             if timer() - onalarm > 3600:
                 onalarm = timer()
                 log.warning(f'ALARM: Lights should be on but are NOT ON lightvalue: {light} ({nlight}/100)')
@@ -280,7 +283,7 @@ while True:
                 with open(alarmfile, "a") as myfile:
                     myfile.write(f"{timestamp}: Lights should be on but are NOT ON lightvalue: {light} ({nlight}/100)\n")
                 # sendsms(f'ALARM: Lights should be on but are NOT ON lightvalue: {light} ({nlight}/100)')
-        elif is_time_between(datetime.now().time(), time(18, 30), time(4, 50)) and light > 5000:  # on hid light time
+        elif is_time_between(datetime.now().time(), HIDLIGHT_START, HIDLIGHT_STOP) and light > HIDLIGHT_THRESHOLD:  # day start (hids on)
             if timer() - onalarm > 3600:
                 onalarm = timer()
                 log.warning(f'ALARM: Lights are on but weak. lightvalue: {light} ({nlight}/100)')
@@ -288,7 +291,7 @@ while True:
                 with open(alarmfile, "a") as myfile:
                     myfile.write(f"{timestamp}: Lights are on but weak. lightvalue: {light} ({nlight}/100)\n")
                 # sendsms(f'ALARM: Lights are on but WEAK. lightvalue: {light} ({nlight}/100)')
-        elif is_time_between(datetime.now().time(), time(6, 10), time(16, 40)) and light < 400000:  # off light time
+        elif is_time_between(datetime.now().time(), DARK_START, DARK_STOP) and light < DARK_THRESHOLD:  # dusk start (hids off)
             if timer() - offalarm > 3600:
                 offalarm = timer()
                 log.warning(f'ALARM: Lights should be off but ARE STILL ON lightvalue: {light} ({nlight}/100)')
@@ -296,7 +299,7 @@ while True:
                 with open(alarmfile, "a") as myfile:
                     myfile.write(f"{timestamp}: Lights should be off but ARE STILL ON lightvalue: {light} ({nlight}/100)\n")
                 # sendsms(f'ALARM: Lights should be off but ARE STILL ON lightvalue: {light} ({nlight}/100)')
-        if tempsensor.temp > 80:
+        if tempsensor.temp > TEMPHI_THRESHOLD:
             if timer() - tempalarm > 3600:
                 tempalarm = timer()
                 log.warning(f'ALARM: Temp is OVER limit: {tempsensor.temp} F')
@@ -304,7 +307,7 @@ while True:
                 with open(alarmfile, "a") as myfile:
                     myfile.write(f"{timestamp}: Temp is OVER limit: {tempsensor.temp} F\n")
                 # sendsms(f'ALARM: Lights should be off but ARE STILL ON lightvalue: {light} ({nlight}/100)')
-        elif tempsensor.temp < 45 and tempsensor.temp != 0:
+        elif tempsensor.temp < TEMPLOW_THRESHOLD and tempsensor.temp != 0:
             if timer() - tempalarm > 3600:
                 tempalarm = timer()
                 log.warning(f'ALARM: Temp is UNDER limit: {tempsensor.temp} F')

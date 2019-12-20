@@ -70,6 +70,20 @@ def _getlivedata():
     return dict(getlivedata=getlivedata)
 
 
+@app.context_processor
+def _laston():
+    def laston():
+        return dbselect('''SELECT timestamp, light, temp, humidity FROM general WHERE name = "laston" LIMIT 1''', fetchall=False)
+    return dict(laston=laston)
+
+
+@app.context_processor
+def _lastoff():
+    def lastoff():
+        return dbselect('''SELECT timestamp, light, temp, humidity FROM general WHERE name = "lastoff" LIMIT 1''', fetchall=False)
+    return dict(lastoff=lastoff)
+
+
 @log.catch
 @app.context_processor
 def _statpull():
