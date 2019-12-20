@@ -17,6 +17,67 @@ loggs = logging.getLogger('werkzeug')
 
 astdata = astralData()
 
+intervals = (
+    ("years", 31536000),
+    ("months", 2592000),
+    # ('weeks', 604800),  # 60 * 60 * 24 * 7
+    ("days", 86400),  # 60 * 60 * 24
+    ("hours", 3600),  # 60 * 60
+    ("minutes", 60),
+    ("seconds", 1),
+)
+
+
+def datetimeto(dt, fmt):
+    """Convert datetime object
+    Args:
+        dt (TYPE): Description:
+        fmt (TYPE): Description:
+        est (bool, [Optional]): Description:
+    Returns:
+        TYPE: Description:
+    """
+    if fmt == "epoch":
+        return int(dt.timestamp())
+    elif fmt == "string":
+        return dt.strftime("%a, %b %d, %Y %I:%M %p")
+
+
+def elapsedTime(start_time, stop_time, append=False):
+    """Convert 2 epochs to elapsed time string representation
+    Args:
+        start_time (string, int, float, datetime): Description: Start time
+        stop_time (string, int, float, datetime): Description:  End time
+        nowifmin (bool, [Optional]): Description: If less then 1 minute return 'Now'
+    Returns:
+        STRING: Description: e.g. '1 Hour, 47 Minutes'
+    """
+    if isinstance(start_time, datetime):
+        start_time = datetimeto(start_time, fmt='epoch')
+    if isinstance(stop_time, datetime):
+        stop_time = datetimeto(stop_time, fmt='epoch')
+    result = []
+    if start_time > stop_time:
+        seconds = int(start_time) - int(stop_time)
+    else:
+        seconds = int(stop_time) - int(start_time)
+    if seconds > 60 and seconds < 3600:
+        granularity = 1
+    else:
+        granularity = 2
+    for name, count in intervals:
+        value = seconds // count
+        if value:
+            seconds -= value * count
+            if value == 1:
+                name = name.rstrip("s")
+            result.append("{} {}".format(int(value), name))
+    else:
+        if append:
+            return ", ".join(result[:granularity]) + f" {append}"
+        else:
+            return ", ".join(result[:granularity])
+
 
 @app.context_processor
 def _convtime():
@@ -66,7 +127,22 @@ def dbselect(cmd, fetchall=True):
 @app.context_processor
 def _getlivedata():
     def getlivedata():
-        return dbselect('''SELECT timestamp, light, temp, humidity FROM general WHERE name = "livedata"''', fetchall=False)
+        livedata = dbselect('''SELECT timestamp, light, temp, humidity FROM general WHERE name = "livedata"''', fetchall=False)
+        last30 = dbselect('''SELECT light, temp, humidity FROM data ORDER BY id DESC LIMIT 12''', fetchall=True)
+        t = []
+        h = []
+        for each in last30:
+            t.append(each[1])
+            h.append(each[2])
+        tavg = float_trunc_1dec(sum(t) / len(t))
+        havg = float_trunc_1dec(sum(h) / len(h))
+        ttrend = float_trunc_1dec(livedata[2] - tavg)
+        htrend = float_trunc_1dec(livedata[3] - havg)
+        if ttrend > 0:
+            ttrend = f'+{ttrend}'
+        if htrend > 0:
+            htrend = f'+{htrend}'
+        return {'timestamp': livedata[0], 'light': livedata[1], 'temp': livedata[2], 'humidity': livedata[3], 'ttrend': ttrend, 'htrend': htrend}
     return dict(getlivedata=getlivedata)
 
 

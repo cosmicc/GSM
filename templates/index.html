@@ -16,9 +16,10 @@
 <center><h1>{{ convtime(timestamp) }}</h1></center><br>
 <h2>{{ lightstring }}  ({{ getlightdata() }}/100)</h2>
 <br>
-<h2>Current Temp:</h2> <h3>{{ temp }}&#176;F</h3> <h2>Last Hour Trend</h2> <h3>({{ ttrend }}&#176;F)</h3>
+{% livedata = getlivedata() %}
+<h2>Current Temp:</h2> <h3>{{ livedata['temp'] }}&#176;F</h3> <h2>Last Hour Trend</h2> <h3>({{ getlivedata()['ttrend'] }}&#176;F)</h3>
 <br>
-<h2>Humidity:</h2> <h3>{{ humidity }}%</h3> <h2>Last Hour Trend</h2> <h3>({{ htrend }}%)</h3><br>
+<h2>Humidity:</h2> <h3>{{ getlivedata()['humidity'] }}%</h3> <h2>Last Hour Trend</h2> <h3>({{ getlivedata()['htrend'] }}%)</h3><br>
 <h2>
 <h2>Last Lights on:</h2> <h3>{{ convtime(laston[0]) }}</h3>  <h2>Temp:</h2> <h3>{{ laston[2] }}&#176;F</h3>  <h2>Humidity:</h2> <h3>{{ laston[3] }}%</h3>
 <br>
@@ -36,7 +37,7 @@
 <br>
 <h2>Current Outdoor Humidity:</h2> <h3>{{ getweatherdata()[3] }}%</h3>
 <br>
-<h2>Today High:</h2> <h3>{{ getweatherdata()[1] }}%</h3> <h2>Today Low:</h2> <h3>{{ getweatherdata()[2] }}%</h3>
+<h2>Today High:</h2> <h3>{{ getweatherdata()[1] }}&#176;F</h3> <h2>Today Low:</h2> <h3>{{ getweatherdata()[2] }}&#176;F</h3>
 <br>
 {% if hasalarms %}
 <h2>Alerts:</h2>
