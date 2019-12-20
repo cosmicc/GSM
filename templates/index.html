@@ -28,7 +28,7 @@
 <br>
 <h2>Next Moon Phase:</h2> <h3>{{ nextmoon[0] }}</h3> in <h3>{{ getmoontime()[0] }} Days</h3> on <h3>{{ convdate(nextmoon[1].__str__()) }}</h3>
 <br>
-<h2>Next Full Moon in</h2> <h3>{{ getmoontime()[1] }} Days</h3> on <h3>{{ convdate(getastdata().moondata['Full Moon']).__str__())}}</h3>
+<h2>Next Full Moon in</h2> <h3>{{ getmoontime()[1] }} Days</h3> on <h3>{{ convdate(getastdata().moondata['Full Moon'].__str__())}}</h3>
 <br>
 <h2>Current Weather:</h2> <h3>{{ getweatherdata()[4].title() }}</h3>
 <br>
