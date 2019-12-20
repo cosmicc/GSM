@@ -206,6 +206,14 @@ def _getlastonhours():
 
 
 @app.context_processor
+def _getlastoffhours():
+    def getlastoffhours():
+        tme = dbselect('''SELECT timestamp FROM general WHERE name = "lastoff" LIMIT 1''', fetchall=False)
+        return elapsedTime(datetime.now(), datetime.strptime(tme[0], '%Y-%m-%d %H:%M'))
+    return dict(getlastoffhours=getlastoffhours)
+
+
+@app.context_processor
 def _getlastoff():
     def getlastoff():
         return dbselect('''SELECT timestamp, light, temp, humidity FROM general WHERE name = "lastoff" LIMIT 1''', fetchall=False)
