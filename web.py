@@ -186,7 +186,7 @@ def _getmoontime():
         astdata.update()
         td = astdata.nextphase[1] - datetime.now().date()
         tr = astdata.moondata["Full Moon"] - datetime.now().date()
-        return ([td.days, tr.days])
+        return [td.days, tr.days]
     return dict(getmoontime=getmoontime)
 
 
