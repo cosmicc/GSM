@@ -20,9 +20,13 @@
 <br>
 <h2>Humidity:</h2> <h3>{{ getlivedata()['humidity'] }}%</h3> <h2>Last Hour Trend</h2> <h3>({{ getlivedata()['htrend'] }}%)</h3><br>
 <h2>
-<h2>Last Lights on:</h2> <h3>{{ convtime(getlaston()[0]) }}</h3> <h3>{{ getlastonhours() }}</h3> <h2>Temp:</h2> <h3>{{ getlaston()[2] }}&#176;F</h3>  <h2>Humidity:</h2> <h3>{{ getlaston()[3] }}%</h3>
+<h2>Last Secondary on:</h2> <h3>{{ convtime(getlaston()[0]) }}</h3> <h2>Temp:</h2> <h3>{{ getlaston()[2] }}&#176;F</h3>  <h2>Humidity:</h2> <h3>{{ getlaston()[3] }}%</h3>
 <br>
-<h2>Last Lights off:</h2> <h3>{{ convtime(getlastoff()[0]) }}</h3> <h3>{{ getlastoffhours() }}</h3> <h2>Temp:</h2> <h3>{{ getlastoff()[2] }}&#176;F</h3>  <h2>Humidity:</h2> <h3>{{ getlastoff()[3] }}%</h3>
+<h2>Last Main on:</h2> <h3>{{ convtime(getlasthidon()[0]) }}</h3> <h2>Temp:</h2> <h3>{{ getlasthidon()[2] }}&#176;F</h3>  <h2>Humidity:</h2> <h3>{{ getlasthidon()[3] }}%</h3>
+<br>
+<h2>Last Main off:</h2> <h3>{{ convtime(getlasthidoff()[0]) }}</h3> <h2>Temp:</h2> <h3>{{ getlasthidoff()[2] }}&#176;F</h3>  <h2>Humidity:</h2> <h3>{{ getlasthidoff()[3] }}%</h3>
+<br>
+<h2>Last Secondary off:</h2> <h3>{{ convtime(getlastoff()[0]) }}</h3> <h2>Temp:</h2> <h3>{{ getlastoff()[2] }}&#176;F</h3>  <h2>Humidity:</h2> <h3>{{ getlastoff()[3] }}%</h3>
 <br>
 <h2>Last Light Cycle:</h2> <h3>{{ lighthours }} Hours</h3>
 <br>

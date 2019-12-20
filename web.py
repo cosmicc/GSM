@@ -198,6 +198,20 @@ def _getlaston():
 
 
 @app.context_processor
+def _getlasthidon():
+    def getlasthidon():
+        return dbselect('''SELECT timestamp, light, temp, humidity FROM general WHERE name = "lasthidon" LIMIT 1''', fetchall=False)
+    return dict(getlasthidon=getlasthidon)
+
+
+@app.context_processor
+def _getlasthidoff():
+    def getlasthidoff():
+        return dbselect('''SELECT timestamp, light, temp, humidity FROM general WHERE name = "lasthidoff" LIMIT 1''', fetchall=False)
+    return dict(getlasthidoff=getlasthidoff)
+
+
+@app.context_processor
 def _getlastonhours():
     def getlastonhours():
         tme = dbselect('''SELECT timestamp FROM general WHERE name = "laston" LIMIT 1''', fetchall=False)
