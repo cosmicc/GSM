@@ -13,6 +13,7 @@ from moon import astralData
 config = ConfigParser()
 config.read('/etc/gsm.conf')
 
+dbfile = config.get('general', 'db')
 DARK_THRESHOLD = int(config.get('light', 'dark_threshold'))
 HIDLIGHT_THRESHOLD = int(config.get('light', 'hidlight_threshold'))
 
@@ -112,7 +113,7 @@ def _convdate():
 @log.catch
 def dbupdate(cmd):
     try:
-        db = sqlite3.connect('/var/opt/lightdata.db')
+        db = sqlite3.connect(dbfile)
         cursor = db.cursor()
         cursor.execute(cmd)
         db.commit()
@@ -124,7 +125,7 @@ def dbupdate(cmd):
 @log.catch
 def dbselect(cmd, fetchall=True):
     try:
-        db = sqlite3.connect('/var/opt/lightdata.db')
+        db = sqlite3.connect(dbfile)
         cursor = db.cursor()
         cursor.execute(cmd)
         if not fetchall:
@@ -172,12 +173,12 @@ def _getweatherdata():
 def _getlightstring():
     def getlightstring():
         livedata = dbselect('''SELECT light FROM general WHERE name = "livedata"''', fetchall=False)
-        if livedata[0] > 300000:
+        if livedata[0] > DARK_THRESHOLD:
             return 'All Lights are OFF'
-        elif livedata[0] > 1000:
-            return 'Secondary Lights are ON'
-        else:
+        elif livedata[0] > HIDLIGHT_THRESHOLD:
             return 'All Lights are ON'
+        else:
+            return 'Secondary Lights are ON'
     return dict(getlightstring=getlightstring)
 
 
@@ -282,7 +283,7 @@ def _statpull():
             hours = 720
             rate = 'D'
             tstr = '%b %-d'
-        conn = sqlite3.connect('/var/opt/lightdata.db')
+        conn = sqlite3.connect(dbfile)
         df = pd.read_sql("SELECT * FROM data WHERE ORDER BY id DESC LIMIT 86400".format(datetime.now() - timedelta(hours=hours)), conn, parse_dates=['date'], index_col='date')
         conn.close()
         df = df.resample(rate).mean()
@@ -296,7 +297,7 @@ def _statpull():
 @log.catch
 @app.route("/")
 def index():
-    db = sqlite3.connect('/var/opt/lightdata.db')
+    db = sqlite3.connect(dbfile)
     cursor = db.cursor()
     cursor.execute('''SELECT timestamp, light, temp, humidity FROM general WHERE name = "livedata"''')
     livedata = cursor.fetchone()
@@ -358,7 +359,7 @@ def index():
 @log.catch
 @app.route("/data")
 def getdata():
-    db = sqlite3.connect('/var/opt/lightdata.db')
+    db = sqlite3.connect(dbfile)
     cursor = db.cursor()
     cursor.execute('''SELECT timestamp, light, temp, humidity FROM general WHERE name = "livedata"''')
     livedata = cursor.fetchone()
