@@ -52,7 +52,7 @@ h6 { font-size: 10px; margin: 0 0 0px 0; padding: 0; font-weight: normal; color:
    width:auto;
 }
 
-.temptext
+.lefttext
 {
     float:left;/*fix for  buggy browsers*/
     text-align: right;
@@ -60,10 +60,28 @@ h6 { font-size: 10px; margin: 0 0 0px 0; padding: 0; font-weight: normal; color:
     width:200px;
 }
 
+
+.righttext
+{
+    float:left;/*fix for  buggy browsers*/
+    text-align: right;
+    display: table-column;
+    width:150px;
+}
+
+
 .temp
 {
     float:left;/*fix for  buggy browsers*/
     text-align: left;
     display:table-column;
-    width:200px;
+    width:100px;
+}
+
+.trend
+{
+    float:left;/*fix for  buggy browsers*/
+    text-align: left;
+    display:table-column;
+    width:100px;
 }

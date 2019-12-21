@@ -18,16 +18,16 @@
 
 <div class="tempdiv">
 <div class="divRow">
-    <div class="temptext">Current Room Temp:</div>
+    <div class="lefttext">Current Room Temp:</div>
     <div class="temp">{{ getlivedata()['temp'] }}&#176;F</div>
-    <div class="temptrendtext">Last Hour:</div>
-    <div class="temptrend">{{ getlivedata()['ttrend'] }}&#176;F</div>
+    <div class="righttext">Last Hour:</div>
+    <div class="trend">{{ getlivedata()['ttrend'] }}&#176;F</div>
 </div>
 <div class="divRow">
-    <div class="temptext">Current Room Humidity:</div>
+    <div class="lefttext">Current Room Humidity:</div>
     <div class="temp">{{ getlivedata()['humidity'] }}%</div>
-    <div class="humiditytrendtext">Last Hour:</div>
-    <div class="humiditytrend">{{ getlivedata()['htrend'] }}%</div>
+    <div class="righttext">Last Hour:</div>
+    <div class="trend">{{ getlivedata()['htrend'] }}%</div>
 </div>
 </div>
 
