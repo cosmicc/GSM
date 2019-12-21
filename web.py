@@ -13,8 +13,8 @@ from moon import astralData
 config = ConfigParser()
 config.read('/etc/gsm.conf')
 
-DARK_THRESHOLD = config.get('light', 'dark_threshold')
-HIDLIGHT_THRESHOLD = config.get('light', 'hidlight_threshold')
+DARK_THRESHOLD = int(config.get('light', 'dark_threshold'))
+HIDLIGHT_THRESHOLD = int(config.get('light', 'hidlight_threshold'))
 
 app = Flask(__name__)
 loggs = logging.getLogger('werkzeug')
