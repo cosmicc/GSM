@@ -37,16 +37,26 @@ h6 { font-size: 10px; margin: 0 0 0px 0; padding: 0; font-weight: normal; color:
     position: relative;
 }
 
-.tempdiv {
-    width: 600px;
-    padding: 5px;
-    position: center;
-    display:inline;
-    border: 2px;
+.tempdiv
+{
+    display:  table;
+    width:auto;
+    background-color:#eee;
+    border:1px solid  #666666;
+    border-spacing:5px;/*cellspacing:poor IE support for  this*/
+   /* border-collapse:separate;*/
 }
 
-.temptext {
-    width: 200px;
-    text-align: right;
-    display:inline;
+.divRow
+{
+   display:table-row;
+   width:auto;
+}
+
+.temptext
+{
+    float:left;/*fix for  buggy browsers*/
+    display:table-column;
+    width:200px;
+    background-color:#ccc;
 }
