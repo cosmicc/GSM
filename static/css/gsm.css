@@ -39,10 +39,9 @@ h6 { font-size: 10px; margin: 0 0 0px 0; padding: 0; font-weight: normal; color:
 
 .tempdiv
 {
-    display:  table;
-    width:auto;
-    background-color:#eee;
-    border:1px solid  #666666;
+    display: table;
+    width: auto;
+    border: 1px solid  #666666;
     border-spacing:5px;/*cellspacing:poor IE support for  this*/
    /* border-collapse:separate;*/
 }
@@ -56,7 +55,15 @@ h6 { font-size: 10px; margin: 0 0 0px 0; padding: 0; font-weight: normal; color:
 .temptext
 {
     float:left;/*fix for  buggy browsers*/
+    text-align: right;
+    display: table-column;
+    width:200px;
+}
+
+.temp
+{
+    float:left;/*fix for  buggy browsers*/
+    text-align: left;
     display:table-column;
     width:200px;
-    background-color:#ccc;
 }
