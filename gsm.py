@@ -16,37 +16,12 @@ import Adafruit_DHT
 import requests
 import RPi.GPIO as GPIO
 from loguru import logger as log
+from modules.broadcast import bcast
 from modules.extras import c2f, float_trunc_1dec
 from modules.rpiboard import Led, cpu_temp
 from sms import sendsms
 from timebetween import is_time_between
 from web import web
-from modules.broadcast import bcast
-
-
-IN_RC = 17       # Input pin
-TEMPHI_THRESHOLD = 80
-TEMPLOW_THRESHOLD = 45
-PRELIGHT_THRESHOLD = 100000
-HIDLIGHT_THRESHOLD = 5000
-DARK_THRESHOLD = 400000
-PRELIGHT_START = time(17, 00)
-HIDLIGHT_START = time(18, 30)
-HIDLIGHT_STOP = time(4, 50)
-PRELIGHT_STOP = time(5, 30)
-DARK_START = time(6, 10)
-DARK_STOP = time(16, 40)
-
-GPIO.setmode(GPIO.BCM)
-
-logfile = '/var/log/gsm.log'
-alarmfile = '/var/log/alarms.log'
-
-config = ConfigParser()
-config.read('/etc/gsm.conf')
-
-boardled = Led('status')
-boardled.ledoff()
 
 parser = argparse.ArgumentParser(prog='GSM')
 parser.add_argument('-c', '--console', action='store_true', help='supress logging output to console. default: error logging')
@@ -75,16 +50,41 @@ else:
 
 log.log('STARTUP', 'GSM is starting up')
 
+GPIO.setmode(GPIO.BCM)
+
+boardled = Led('status')
+boardled.ledoff()
+
+config = ConfigParser()
+config.read('/etc/gsm.conf')
+
+IN_RC = 17       # Input pin
+TEMPHI_THRESHOLD = config.get('temp', 'temphigh_threshold')
+TEMPLOW_THRESHOLD = config.get('temp', 'templow_threshold')
+PRELIGHT_THRESHOLD = config.get('light', 'prelight_threshold')
+HIDLIGHT_THRESHOLD = config.get('light', 'hidlight_threshold')
+DARK_THRESHOLD = config.get('light', 'dark_threshold')
+PRELIGHT_START = datetime.strptime(config.get('light', 'prelight_start'), '%H:%M').time()
+HIDLIGHT_START = datetime.strptime(config.get('light', 'hidlight_start'), '%H:%M').time()
+HIDLIGHT_STOP = datetime.strptime(config.get('light', 'hidlight_stop'), '%H:%M').time()
+PRELIGHT_STOP = datetime.strptime(config.get('light', 'prelight_stop'), '%H:%M').time()
+DARK_START = datetime.strptime(config.get('light', 'dark_start'), '%H:%M').time()
+DARK_STOP = datetime.strptime(config.get('light', 'dark_stop'), '%H:%M').time()
+
+logfile = config.get('general', 'logfile')
+alarmfile = config.get('general', 'alarmfile')
 weather_api = config.get('general', 'openweather_api')
 weather_zip = config.get('general', 'openweather_zipcode')
+dbfile = config.get('general', 'db')
+logfile = config.get('general', 'logfile')
+alarmfile = config.get('general', 'alarmfile')
 
 outside_weather = {}
 
 if args.reset:
-    os.remove("/var/opt/lightdata.db")
+    os.remove(dbfile)
 
-# mdb = sqlite3.connect("file::memory:?cache=shared", uri=True)
-db = sqlite3.connect('/var/opt/lightdata.db')
+db = sqlite3.connect(dbfile)
 cursor = db.cursor()
 # mcursor = mdb.cursor()
 # mcursor.execute('CREATE TABLE general(id INTEGER PRIMARY KEY, name TEXT, timestamp TEXT, light INTEGER, temp REAL, humidity REAL)')
@@ -105,8 +105,8 @@ db.commit()
 db.close()
 if args.reset:
     print('Database has been reset')
-    os.remove("/var/log/gsm.log")
-    os.remove("/var/log/alarms.log")
+    os.remove(logfile)
+    os.remove(alarmfile)
     exit(0)
 
 log.debug('Starting broadcast thread')
@@ -120,7 +120,7 @@ web_thread.start()
 
 def dbupdate(cmd):
     try:
-        db = sqlite3.connect('/var/opt/lightdata.db')
+        db = sqlite3.connect(dbfile)
         cursor = db.cursor()
         cursor.execute(cmd)
         db.commit()
@@ -131,7 +131,7 @@ def dbupdate(cmd):
 
 def dbselect(cmd, fetchall=True):
     try:
-        db = sqlite3.connect('/var/opt/lightdata.db')
+        db = sqlite3.connect(dbfile)
         cursor = db.cursor()
         cursor.execute(cmd)
         if not fetchall:
@@ -229,6 +229,8 @@ lastlight = None
 lastlighttimer = timer() - 300
 lastlighttimer2 = timer() - 300
 lastdatatimer = timer()
+
+log.debug('Starting main loop')
 
 while True:
     try:

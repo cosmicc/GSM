@@ -1,0 +1,23 @@
+[general]
+loglevel = INFO
+logfile = /var/log/gsm.log
+alarmfile = /var/log/alarms.log
+db = /var/opt/lightdata.db
+openweather_api =
+openweather_zipcode = 90210
+
+
+[light]
+prelight_threshold = 100000
+hidlight_threshold = 1000
+dark_threshold = 400000
+prelight_start = 17:00
+hidlight_start = 18:30
+hidlight_stop = 4:50
+prelight_stop = 5:30
+dark_start = 6:10
+dark_stop = 16:40
+
+[temp]
+temphigh_threshold = 80
+templow_threshold = 45

@@ -1,6 +1,7 @@
-import logging
-# import pandas as pd
+
 import sqlite3
+import logging
+from configparser import ConfigParser
 from datetime import datetime
 
 from flask import Flask, jsonify, redirect, render_template, url_for
@@ -8,6 +9,12 @@ from loguru import logger as log
 from modules.extras import f2c, float_trunc_1dec
 from modules.rpiboard import get_wifi_info
 from moon import astralData
+
+config = ConfigParser()
+config.read('/etc/gsm.conf')
+
+DARK_THRESHOLD = config.get('light', 'dark_threshold')
+HIDLIGHT_THRESHOLD = config.get('light', 'hidlight_threshold')
 
 app = Flask(__name__)
 loggs = logging.getLogger('werkzeug')
@@ -151,6 +158,20 @@ def _getweatherdata():
     def getweatherdata():
         return dbselect('''SELECT tempnow, temphi, templow, humidity, weather, sunrise, sunset FROM outside WHERE name = "current"''', fetchall=False)
     return dict(getweatherdata=getweatherdata)
+
+
+@log.catch
+@app.context_processor
+def _getlightstring():
+    def getlightstring():
+        livedata = dbselect('''SELECT light FROM general WHERE name = "livedata"''', fetchall=False)
+        if livedata[1] > 300000:
+            return 'All Lights are OFF'
+        elif livedata[1] > 1000:
+            return 'Secondary Lights are ON'
+        else:
+            return 'All Lights are ON'
+    return dict(getlightstring=getlightstring)
 
 
 @log.catch
@@ -317,12 +338,13 @@ def index():
         ttrend = f'+{ttrend}'
     if htrend > 0:
         htrend = f'+{htrend}'
-    if livedata[1] > 300000:
+    if livedata[1] > DARK_THRESHOLD:
         lightstring = f'All Lights are OFF'
-    elif livedata[1] > 1000:
-        lightstring = f'Secondary Lights are ON'
-    else:
+    elif livedata[1] > HIDLIGHT_THRESHOLD:
         lightstring = f'All Lights are ON'
+    else:
+        lightstring = f'Secondary Lights are ON'
+
     return render_template('index.html', timestamp=livedata[0], light=f'{livedata[1]:,d}', light2=light2, temp=livedata[2], temp2=f2c(livedata[2]), humidity=livedata[3], laston=laston, lastoff=lastoff, lighthours=lighthours[0], currentmoon=astdata.currentphase, nextmoon=astdata.nextphase, moondata=astdata.moondata, npd=td.days, fmd=tr.days, lavg=lavg, tavg=tavg, havg=havg, ttrend=ttrend, htrend=htrend, wifi_info=get_wifi_info(), hasalarms=hasalarms, alarms=alarmdata, lightstring=lightstring)
 
 
