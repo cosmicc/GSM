@@ -4,7 +4,7 @@ body {
     color: #7f7467;
     font-family: Tahoma, Geneva, sans-serif;
     font-size: 14px;
-    line-height: 2em;
+    line-height: 1.8em;
     background-color: #444444;
     background-size: cover;
 }
@@ -27,7 +27,7 @@ h6 { font-size: 10px; margin: 0 0 0px 0; padding: 0; font-weight: normal; color:
     width: 1000px;
     height: 500px;
     padding-top: 10px;
-    padding-left: 20px;
+    padding-left: 40px;
     position: fixed;
     top: 50px;
     left: 200px;
