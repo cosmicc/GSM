@@ -34,8 +34,11 @@
 <div class="splitdiv">
     <div class="splitRow">
         <div class="splitleft">
-            <div class="centertext">Outdoor Conditions:</div>
-            <div class="centertext">{{ getweatherdata()[4].title() }}</div>
+            <div class="centertext">Outdoor Conditions:&nbsp;&nbsp;{{ getweatherdata()[4].title() }}</div>
+            <div class="centertext">Current Temp: {{ getweatherdata()[0] }}&#176;F</div>
+            <div class="centertext">Current Humidity: {{ getweatherdata()[3] }}%</div>
+            <div class="centertext">Today High: {{ getweatherdata()[1] }}&#176;F</div>
+            <div class="centertext">Today Low: {{ getweatherdata()[2] }}&#176;F</div>
         </div>
         <div class="splitright">
             a
