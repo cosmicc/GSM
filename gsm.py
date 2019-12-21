@@ -161,7 +161,7 @@ class tempSensor():
         else:
             log.error(f'1wire temp sensor - invalid sensor type: {self.sensor_type}')
             exit(1)
-        log.info(f'Initialized 1wire temp sensor: {self.sensor_type} on pin: {self.pin}')
+        log.success(f'Initialized 1wire temp sensor: {self.sensor_type} on pin: {self.pin}')
 
     def check(self):
         try:

@@ -14,7 +14,7 @@
 <div class="cbox">
 <div class="cbox-content" id="cbox-content">
 <center><h1>{{ current_datestamp() }}</h1></center><br>
-<h2>{{ lightstring }}  ({{ getlightdata() }}/100)</h2>
+<center><h2>{{ getlightstring() }}</h2>  <h2>(</h2><h3>{{ getlightdata() }}/100</h3><h2>)</h2></center>
 <br>
 <h2>Current Temp:</h2> <h3>{{ getlivedata()['temp'] }}&#176;F</h3> <h2>Last Hour Trend</h2> <h3>({{ getlivedata()['ttrend'] }}&#176;F)</h3>
 <br>
