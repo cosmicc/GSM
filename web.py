@@ -172,9 +172,9 @@ def _getweatherdata():
 def _getlightstring():
     def getlightstring():
         livedata = dbselect('''SELECT light FROM general WHERE name = "livedata"''', fetchall=False)
-        if livedata[1] > 300000:
+        if livedata[0] > 300000:
             return 'All Lights are OFF'
-        elif livedata[1] > 1000:
+        elif livedata[0] > 1000:
             return 'Secondary Lights are ON'
         else:
             return 'All Lights are ON'
