@@ -16,10 +16,10 @@
 <center><h1>{{ current_datestamp() }}</h1></center><br>
 <center><h2>{{ getlightstring() }}</h2>&nbsp;&nbsp;<h2>(</h2><h3>{{ getlightdata() }}/100</h3><h2>)</h2></center>
 <br>
-<h2>Current Temp:</h2> <h3>{{ getlivedata()['temp'] }}&#176;F</h3> <h2>Last Hour Trend</h2> <h3>({{ getlivedata()['ttrend'] }}&#176;F)</h3>
+<center><h2>Current Room Temp:</h2>&nbsp;<h3>{{ getlivedata()['temp'] }}&#176;F</h3>&nbsp;&nbsp;<h2>Last Hour:</h2>&nbsp;<h3>{{ getlivedata()['ttrend'] }}&#176;F</h3></center>
 <br>
-<h2>Humidity:</h2> <h3>{{ getlivedata()['humidity'] }}%</h3> <h2>Last Hour Trend</h2> <h3>({{ getlivedata()['htrend'] }}%)</h3><br>
-<h2>
+<center><h2>Humidity:</h2>&nbsp;<h3>{{ getlivedata()['humidity'] }}%</h3>&nbsp;&nbsp;<h2>Last Hour:</h2>&nbsp;<h3>{{ getlivedata()['htrend'] }}%</h3></center>
+<br>
 <h2>Last Secondary on:</h2> <h3>{{ convtime(getlaston()[0]) }}</h3> <h2>Temp:</h2> <h3>{{ getlaston()[2] }}&#176;F</h3>  <h2>Humidity:</h2> <h3>{{ getlaston()[3] }}%</h3>
 <br>
 <h2>Last Main on:</h2> <h3>{{ convtime(getlasthidon()[0]) }}</h3> <h2>Temp:</h2> <h3>{{ getlasthidon()[2] }}&#176;F</h3>  <h2>Humidity:</h2> <h3>{{ getlasthidon()[3] }}%</h3>
