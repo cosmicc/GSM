@@ -30,26 +30,6 @@ parser.add_argument('-i', '--info', action='store_true', help='verbose output (i
 parser.add_argument('-r', '--reset', action='store_true', help='reset database')
 args = parser.parse_args()
 
-if args.debug:
-    loglevel = "DEBUG"
-elif args.info:
-    loglevel = "INFO"
-else:
-    loglevel = "WARNING"
-
-if args.console:
-    log.configure(
-        handlers=[dict(sink=sys.stdout, level=loglevel, backtrace=True, format='<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>'),
-                  dict(sink=logfile, level="INFO", enqueue=True, serialize=False, rotation="1 MB", retention="14 days", compression="gz")],
-        levels=[dict(name="STARTUP", no=38, icon="¤", color="<yellow>")], extra={"common_to_all": "default"}, activation=[("my_module.secret", False), ("another_library.module", True)])
-else:
-    log.configure(
-        handlers=[dict(sink=sys.stderr, level="CRITICAL", backtrace=True, format='<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>'),
-                  dict(sink=logfile, level="INFO", enqueue=True, serialize=False, rotation="1 MB", retention="14 days", compression="gz")],
-        levels=[dict(name="STARTUP", no=38, icon="¤", color="<yellow>")], extra={"common_to_all": "default"}, activation=[("my_module.secret", False), ("another_library.module", True)])
-
-log.log('STARTUP', 'GSM is starting up')
-
 GPIO.setmode(GPIO.BCM)
 
 boardled = Led('status')
@@ -78,6 +58,24 @@ weather_zip = config.get('general', 'openweather_zipcode')
 dbfile = config.get('general', 'db')
 logfile = config.get('general', 'logfile')
 alarmfile = config.get('general', 'alarmfile')
+
+if args.debug:
+    loglevel = "DEBUG"
+elif args.info:
+    loglevel = "INFO"
+else:
+    loglevel = "WARNING"
+
+if args.console:
+    log.configure(
+        handlers=[dict(sink=sys.stdout, level=loglevel, backtrace=True, format='<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>'),
+                  dict(sink=logfile, level="INFO", enqueue=True, serialize=False, rotation="1 MB", retention="14 days", compression="gz")],
+        levels=[dict(name="STARTUP", no=38, icon="¤", color="<yellow>")], extra={"common_to_all": "default"}, activation=[("my_module.secret", False), ("another_library.module", True)])
+else:
+    log.configure(
+        handlers=[dict(sink=sys.stderr, level="CRITICAL", backtrace=True, format='<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>'),
+                  dict(sink=logfile, level="INFO", enqueue=True, serialize=False, rotation="1 MB", retention="14 days", compression="gz")],
+        levels=[dict(name="STARTUP", no=38, icon="¤", color="<yellow>")], extra={"common_to_all": "default"}, activation=[("my_module.secret", False), ("another_library.module", True)])
 
 outside_weather = {}
 
@@ -108,6 +106,8 @@ if args.reset:
     os.remove(logfile)
     os.remove(alarmfile)
     exit(0)
+
+log.log('STARTUP', 'GSM is starting up')
 
 log.debug('Starting broadcast thread')
 bcast_thread = threading.Thread(name='broadcast', target=bcast, daemon=True)
