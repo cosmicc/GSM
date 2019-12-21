@@ -1,7 +1,7 @@
 <html>
 <head>
 <meta name="description" content="Environment Sensor" />
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/gsm.css') }}?v1.19">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/gsm.css') }}?v1.20">
 <script type="text/javascript">
     var pageLoader = setInterval(function(){
             $("#cbox-content").load(" #cbox-content");
@@ -14,7 +14,7 @@
 <div class="cbox">
 <div class="cbox-content" id="cbox-content">
 <center><h1>{{ current_datestamp() }}</h1></center><br>
-<center><h2>{{ getlightstring() }}</h2>  <h2>(</h2><h3>{{ getlightdata() }}/100</h3><h2>)</h2></center>
+<center><h2>{{ getlightstring() }}</h2>&nbsp;&nbsp;<h2>(</h2><h3>{{ getlightdata() }}/100</h3><h2>)</h2></center>
 <br>
 <h2>Current Temp:</h2> <h3>{{ getlivedata()['temp'] }}&#176;F</h3> <h2>Last Hour Trend</h2> <h3>({{ getlivedata()['ttrend'] }}&#176;F)</h3>
 <br>
