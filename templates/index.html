@@ -35,8 +35,8 @@
     <div class="splitRow">
         <div class="splitleft">
             <div class="centertext">Outdoor Conditions:&nbsp;&nbsp;{{ getweatherdata()[4].title() }}</div>
-            <div class="centertext">Current Temp: {{ getweatherdata()[0] }}&#176;F</div>
-            <div class="centertext">Current Humidity: {{ getweatherdata()[3] }}%</div>
+            <div class="centertext">Outdoor Temp: {{ getweatherdata()[0] }}&#176;F</div>
+            <div class="centertext">Outdoor Humidity: {{ getweatherdata()[3] }}%</div>
             <div class="centertext">Today High: {{ getweatherdata()[1] }}&#176;F</div>
             <div class="centertext">Today Low: {{ getweatherdata()[2] }}&#176;F</div>
         </div>
@@ -59,15 +59,6 @@
 <h2>Next Moon Phase:</h2> <h3>{{ nextmoon[0] }}</h3> in <h3>{{ getmoontime()[0] }} Days</h3> on <h3>{{ convdate(nextmoon[1].__str__()) }}</h3>
 <br>
 <h2>Next Full Moon in</h2> <h3>{{ getmoontime()[1] }} Days</h3> on <h3>{{ convdate(getastdata().moondata['Full Moon'].__str__())}}</h3>
-<br>
-<h2>Current Weather:</h2> <h3>{{ getweatherdata()[4].title() }}</h3>
-<br>
-<h2>Current Outdoor Temp:</h2> <h3>{{ getweatherdata()[0] }}&#176;F</h3>
-<br>
-<h2>Current Outdoor Humidity:</h2> <h3>{{ getweatherdata()[3] }}%</h3>
-<br>
-<h2>Today High:</h2> <h3>{{ getweatherdata()[1] }}&#176;F</h3> <h2>Today Low:</h2> <h3>{{ getweatherdata()[2] }}&#176;F</h3>
-<br>
 <br>
 {% if hasalarms %}
 <h2>Alerts:</h2>
