@@ -1,7 +1,7 @@
 <html>
 <head>
 <meta name="description" content="Environment Sensor" />
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/gsm.css') }}?v1.32">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/gsm.css') }}?v1.33">
 <script type="text/javascript">
     var pageLoader = setInterval(function(){
             $("#cbox-content").load(" #cbox-content");
@@ -19,15 +19,15 @@
 <div class="tempdiv">
 <div class="divRow">
     <div class="lefttext">Current Room Temp:</div>
-    <div class="temp">{{ getlivedata()['temp'] }}&#176;F</div>
+    <div class="temp">&nbsp;{{ getlivedata()['temp'] }}&#176;F</div>
     <div class="righttext">Last Hour:</div>
-    <div class="trend">{{ getlivedata()['ttrend'] }}&#176;F</div>
+    <div class="trend">&nbsp;{{ getlivedata()['ttrend'] }}&#176;F</div>
 </div>
 <div class="divRow">
     <div class="lefttext">Current Room Humidity:</div>
-    <div class="temp">{{ getlivedata()['humidity'] }}%</div>
+    <div class="temp">&nbsp;{{ getlivedata()['humidity'] }}%</div>
     <div class="righttext">Last Hour:</div>
-    <div class="trend">{{ getlivedata()['htrend'] }}%</div>
+    <div class="trend">&nbsp;{{ getlivedata()['htrend'] }}%</div>
 </div>
 </div>
 
