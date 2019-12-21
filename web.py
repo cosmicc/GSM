@@ -87,10 +87,17 @@ def elapsedTime(start_time, stop_time, append=False):
 
 
 @app.context_processor
+def _current_datestamp():
+    def current_datestamp():
+        return datetime.now().strftime("%a, %b %d %I:%M %p")
+    return dict(current_datestamp=current_datestamp)
+
+
+@app.context_processor
 def _convtime():
     def convtime(string):
         datetime_object = datetime.strptime(string, '%Y-%m-%d %H:%M')
-        return datetime_object.strftime("%b %d %Y %I:%M%p")
+        return datetime_object.strftime("%a, %b %d %I:%M %p")
     return dict(convtime=convtime)
 
 
