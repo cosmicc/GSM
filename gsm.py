@@ -319,7 +319,7 @@ while True:
                 # sendsms(f'ALARM: Lights should be off but ARE STILL ON lightvalue: {light} ({nlight}/100)')
         if timer() - oweather > 3600:
             oweather = timer()
-            log.info('New Outdoor weather information recieved')
+            log.debug('New Outdoor weather information recieved')
             get_outside_weather()
         sleep(1)
 
