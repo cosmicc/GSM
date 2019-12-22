@@ -55,34 +55,6 @@ GPIO.setmode(GPIO.BCM)
 boardled = Led('status')
 boardled.ledoff()
 
-if args.reset:
-    os.remove(dbfile)
-
-db = sqlite3.connect(dbfile)
-cursor = db.cursor()
-# mcursor = mdb.cursor()
-# mcursor.execute('CREATE TABLE general(id INTEGER PRIMARY KEY, name TEXT, timestamp TEXT, light INTEGER, temp REAL, humidity REAL)')
-cursor.execute('CREATE TABLE IF NOT EXISTS alarms(id INTEGER PRIMARY KEY, timestamp TEXT, value INTEGER, type TEXT)')
-cursor.execute('CREATE TABLE IF NOT EXISTS data(id INTEGER PRIMARY KEY, timestamp TEXT, light INTEGER, temp REAL, humidity REAL)')
-cursor.execute('CREATE TABLE IF NOT EXISTS general(id INTEGER PRIMARY KEY, name TEXT, timestamp TEXT, light INTEGER, temp REAL, humidity REAL)')
-cursor.execute('CREATE TABLE IF NOT EXISTS outside(id INTEGER PRIMARY KEY, name TEXT, timestamp INTEGER, tempnow REAL, temphi REAL, templow REAL, humidity REAL, weather TEXT, sunrise INTEGER, sunset INTEGER)')
-# mcursor.execute('INSERT INTO general (name) VALUES ("lastdata")')
-if args.reset:
-    cursor.execute('INSERT INTO general (name, timestamp, light, temp, humidity) VALUES ("laston", "2019-01-01 00:00", "0", "0.0", "0.0")')
-    cursor.execute('INSERT INTO general (name, timestamp, light, temp, humidity) VALUES ("lastoff", "2019-01-01 00:00", "0", "0.0", "0.0")')
-    cursor.execute('INSERT INTO general (name) VALUES ("lighthours")')
-    cursor.execute('INSERT INTO general (name, timestamp, light, temp, humidity) VALUES ("livedata", "2019-01-01 00:00", "0", "0.0", "0.0")')
-    cursor.execute('INSERT INTO general (name, timestamp, light, temp, humidity) VALUES ("lasthidon", "2019-01-01 00:00", "0", "0.0", "0.0")')
-    cursor.execute('INSERT INTO general (name, timestamp, light, temp, humidity) VALUES ("lasthidoff", "2019-01-01 00:00", "0", "0.0", "0.0")')
-    cursor.execute('INSERT INTO outside (name) VALUES ("current")')
-db.commit()
-db.close()
-if args.reset:
-    print('Database has been reset')
-    os.remove(logfile)
-    os.remove(alarmfile)
-    exit(0)
-
 
 def dbupdate(cmd):
     try:
@@ -185,6 +157,33 @@ def get_outside_weather():
 
 
 def main():
+    if args.reset:
+        os.remove(dbfile)
+
+    db = sqlite3.connect(dbfile)
+    cursor = db.cursor()
+    # mcursor = mdb.cursor()
+    # mcursor.execute('CREATE TABLE general(id INTEGER PRIMARY KEY, name TEXT, timestamp TEXT, light INTEGER, temp REAL, humidity REAL)')
+    cursor.execute('CREATE TABLE IF NOT EXISTS alarms(id INTEGER PRIMARY KEY, timestamp TEXT, value INTEGER, type TEXT)')
+    cursor.execute('CREATE TABLE IF NOT EXISTS data(id INTEGER PRIMARY KEY, timestamp TEXT, light INTEGER, temp REAL, humidity REAL)')
+    cursor.execute('CREATE TABLE IF NOT EXISTS general(id INTEGER PRIMARY KEY, name TEXT, timestamp TEXT, light INTEGER, temp REAL, humidity REAL)')
+    cursor.execute('CREATE TABLE IF NOT EXISTS outside(id INTEGER PRIMARY KEY, name TEXT, timestamp INTEGER, tempnow REAL, temphi REAL, templow REAL, humidity REAL, weather TEXT, sunrise INTEGER, sunset INTEGER)')
+    # mcursor.execute('INSERT INTO general (name) VALUES ("lastdata")')
+    if args.reset:
+        cursor.execute('INSERT INTO general (name, timestamp, light, temp, humidity) VALUES ("laston", "2019-01-01 00:00", "0", "0.0", "0.0")')
+        cursor.execute('INSERT INTO general (name, timestamp, light, temp, humidity) VALUES ("lastoff", "2019-01-01 00:00", "0", "0.0", "0.0")')
+        cursor.execute('INSERT INTO general (name) VALUES ("lighthours")')
+        cursor.execute('INSERT INTO general (name, timestamp, light, temp, humidity) VALUES ("livedata", "2019-01-01 00:00", "0", "0.0", "0.0")')
+        cursor.execute('INSERT INTO general (name, timestamp, light, temp, humidity) VALUES ("lasthidon", "2019-01-01 00:00", "0", "0.0", "0.0")')
+        cursor.execute('INSERT INTO general (name, timestamp, light, temp, humidity) VALUES ("lasthidoff", "2019-01-01 00:00", "0", "0.0", "0.0")')
+        cursor.execute('INSERT INTO outside (name) VALUES ("current")')
+    db.commit()
+    db.close()
+    if args.reset:
+        print('Database has been reset')
+        os.remove(logfile)
+        os.remove(alarmfile)
+        exit(0)
     config = ConfigParser()
     config.read('/etc/gsm.conf')
 
