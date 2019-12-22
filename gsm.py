@@ -38,12 +38,6 @@ def signal_handler(signal, frame):
     exit(0)
 
 
-pidfile = pid.PidFile('gsm')
-try:
-    pidfile.create()
-except pid.PidFileAlreadyLockedError:
-    log.error('GSM is already running')
-
 signal.signal(signal.SIGTERM, signal_handler)  # Graceful Shutdown
 signal.signal(signal.SIGHUP, signal_handler)  # Reload/Restart
 signal.signal(signal.SIGINT, signal_handler)  # Hard Exit
@@ -236,6 +230,15 @@ def get_outside_weather():
 
 
 def main():
+    pidfile = pid.PidFile('gsm')
+        try:
+            pidfile.create()
+        except pid.PidFileAlreadyLockedError:
+            log.error('GSM is already running')
+            exit(1)
+        except:
+            log.exception('PID file error:')
+            exit(1)
     log.log('STARTUP', 'GSM is starting up')
 
     log.debug('Starting broadcast thread')
