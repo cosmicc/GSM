@@ -37,7 +37,7 @@ def signal_handler(signal, frame):
     exit(0)
 
 
-pidfile = PidFile('gsm')
+pidfile = pid.PidFile('gsm')
 pidfile.create()
 
 signal.signal(signal.SIGTERM, signal_handler)  # Graceful Shutdown
