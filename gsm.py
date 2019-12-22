@@ -1,7 +1,6 @@
 #!/usr/bin/env python3.8
 
 import argparse
-import daemon
 import json
 import os
 import signal
@@ -15,6 +14,7 @@ from time import sleep
 from timeit import default_timer as timer
 
 import Adafruit_DHT
+import daemon
 import pid
 import requests
 import RPi.GPIO as GPIO
@@ -44,7 +44,7 @@ signal.signal(signal.SIGINT, signal_handler)  # Hard Exit
 signal.signal(signal.SIGQUIT, signal_handler)  # Hard Exit
 
 parser = argparse.ArgumentParser(prog='GSM')
-parser.add_argument('--daemon', action='store_true', help='daemon mode')
+parser.add_argument('-c', '--console', action='store_true', help='console log output')
 parser.add_argument('-d', '--debug', action='store_true', help='extra verbose output (debug)')
 parser.add_argument('-i', '--info', action='store_true', help='verbose output (info)')
 parser.add_argument('-r', '--reset', action='store_true', help='reset database')
@@ -54,6 +54,76 @@ GPIO.setmode(GPIO.BCM)
 
 boardled = Led('status')
 boardled.ledoff()
+
+if args.reset:
+    os.remove(dbfile)
+
+db = sqlite3.connect(dbfile)
+cursor = db.cursor()
+# mcursor = mdb.cursor()
+# mcursor.execute('CREATE TABLE general(id INTEGER PRIMARY KEY, name TEXT, timestamp TEXT, light INTEGER, temp REAL, humidity REAL)')
+cursor.execute('CREATE TABLE IF NOT EXISTS alarms(id INTEGER PRIMARY KEY, timestamp TEXT, value INTEGER, type TEXT)')
+cursor.execute('CREATE TABLE IF NOT EXISTS data(id INTEGER PRIMARY KEY, timestamp TEXT, light INTEGER, temp REAL, humidity REAL)')
+cursor.execute('CREATE TABLE IF NOT EXISTS general(id INTEGER PRIMARY KEY, name TEXT, timestamp TEXT, light INTEGER, temp REAL, humidity REAL)')
+cursor.execute('CREATE TABLE IF NOT EXISTS outside(id INTEGER PRIMARY KEY, name TEXT, timestamp INTEGER, tempnow REAL, temphi REAL, templow REAL, humidity REAL, weather TEXT, sunrise INTEGER, sunset INTEGER)')
+# mcursor.execute('INSERT INTO general (name) VALUES ("lastdata")')
+if args.reset:
+    cursor.execute('INSERT INTO general (name, timestamp, light, temp, humidity) VALUES ("laston", "2019-01-01 00:00", "0", "0.0", "0.0")')
+    cursor.execute('INSERT INTO general (name, timestamp, light, temp, humidity) VALUES ("lastoff", "2019-01-01 00:00", "0", "0.0", "0.0")')
+    cursor.execute('INSERT INTO general (name) VALUES ("lighthours")')
+    cursor.execute('INSERT INTO general (name, timestamp, light, temp, humidity) VALUES ("livedata", "2019-01-01 00:00", "0", "0.0", "0.0")')
+    cursor.execute('INSERT INTO general (name, timestamp, light, temp, humidity) VALUES ("lasthidon", "2019-01-01 00:00", "0", "0.0", "0.0")')
+    cursor.execute('INSERT INTO general (name, timestamp, light, temp, humidity) VALUES ("lasthidoff", "2019-01-01 00:00", "0", "0.0", "0.0")')
+    cursor.execute('INSERT INTO outside (name) VALUES ("current")')
+db.commit()
+db.close()
+if args.reset:
+    print('Database has been reset')
+    os.remove(logfile)
+    os.remove(alarmfile)
+    exit(0)
+
+config = ConfigParser()
+config.read('/etc/gsm.conf')
+
+IN_RC = 17       # Input pin
+TEMPHI_THRESHOLD = int(config.get('temp', 'temphigh_threshold'))
+TEMPLOW_THRESHOLD = int(config.get('temp', 'templow_threshold'))
+PRELIGHT_THRESHOLD = int(config.get('light', 'prelight_threshold'))
+HIDLIGHT_THRESHOLD = int(config.get('light', 'hidlight_threshold'))
+DARK_THRESHOLD = int(config.get('light', 'dark_threshold'))
+PRELIGHT_START = datetime.strptime(config.get('light', 'prelight_start'), '%H:%M').time()
+HIDLIGHT_START = datetime.strptime(config.get('light', 'hidlight_start'), '%H:%M').time()
+HIDLIGHT_STOP = datetime.strptime(config.get('light', 'hidlight_stop'), '%H:%M').time()
+PRELIGHT_STOP = datetime.strptime(config.get('light', 'prelight_stop'), '%H:%M').time()
+DARK_START = datetime.strptime(config.get('light', 'dark_start'), '%H:%M').time()
+DARK_STOP = datetime.strptime(config.get('light', 'dark_stop'), '%H:%M').time()
+
+logfile = config.get('general', 'logfile')
+alarmfile = config.get('general', 'alarmfile')
+weather_api = config.get('general', 'openweather_api')
+weather_zip = config.get('general', 'openweather_zipcode')
+dbfile = config.get('general', 'db')
+logfile = config.get('general', 'logfile')
+alarmfile = config.get('general', 'alarmfile')
+
+if args.debug:
+    loglevel = "DEBUG"
+elif args.info:
+    loglevel = "INFO"
+else:
+    loglevel = "WARNING"
+
+if not args.console:
+    log.configure(
+        handlers=[dict(sink=sys.stdout, level=loglevel, backtrace=True, format='<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>'),
+                  dict(sink=logfile, level="INFO", enqueue=True, serialize=False, rotation="1 MB", retention="14 days", compression="gz")],
+        levels=[dict(name="STARTUP", no=38, icon="¤", color="<yellow>")], extra={"common_to_all": "default"}, activation=[("my_module.secret", False), ("another_library.module", True)])
+else:
+    log.configure(
+        handlers=[dict(sink=sys.stderr, level="CRITICAL", backtrace=True, format='<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>'),
+                  dict(sink=logfile, level="INFO", enqueue=True, serialize=False, rotation="1 MB", retention="14 days", compression="gz")],
+        levels=[dict(name="STARTUP", no=38, icon="¤", color="<yellow>")], extra={"common_to_all": "default"}, activation=[("my_module.secret", False), ("another_library.module", True)])
 
 
 def dbupdate(cmd):
@@ -157,75 +227,6 @@ def get_outside_weather():
 
 
 def main():
-    if args.reset:
-        os.remove(dbfile)
-
-    db = sqlite3.connect(dbfile)
-    cursor = db.cursor()
-    # mcursor = mdb.cursor()
-    # mcursor.execute('CREATE TABLE general(id INTEGER PRIMARY KEY, name TEXT, timestamp TEXT, light INTEGER, temp REAL, humidity REAL)')
-    cursor.execute('CREATE TABLE IF NOT EXISTS alarms(id INTEGER PRIMARY KEY, timestamp TEXT, value INTEGER, type TEXT)')
-    cursor.execute('CREATE TABLE IF NOT EXISTS data(id INTEGER PRIMARY KEY, timestamp TEXT, light INTEGER, temp REAL, humidity REAL)')
-    cursor.execute('CREATE TABLE IF NOT EXISTS general(id INTEGER PRIMARY KEY, name TEXT, timestamp TEXT, light INTEGER, temp REAL, humidity REAL)')
-    cursor.execute('CREATE TABLE IF NOT EXISTS outside(id INTEGER PRIMARY KEY, name TEXT, timestamp INTEGER, tempnow REAL, temphi REAL, templow REAL, humidity REAL, weather TEXT, sunrise INTEGER, sunset INTEGER)')
-    # mcursor.execute('INSERT INTO general (name) VALUES ("lastdata")')
-    if args.reset:
-        cursor.execute('INSERT INTO general (name, timestamp, light, temp, humidity) VALUES ("laston", "2019-01-01 00:00", "0", "0.0", "0.0")')
-        cursor.execute('INSERT INTO general (name, timestamp, light, temp, humidity) VALUES ("lastoff", "2019-01-01 00:00", "0", "0.0", "0.0")')
-        cursor.execute('INSERT INTO general (name) VALUES ("lighthours")')
-        cursor.execute('INSERT INTO general (name, timestamp, light, temp, humidity) VALUES ("livedata", "2019-01-01 00:00", "0", "0.0", "0.0")')
-        cursor.execute('INSERT INTO general (name, timestamp, light, temp, humidity) VALUES ("lasthidon", "2019-01-01 00:00", "0", "0.0", "0.0")')
-        cursor.execute('INSERT INTO general (name, timestamp, light, temp, humidity) VALUES ("lasthidoff", "2019-01-01 00:00", "0", "0.0", "0.0")')
-        cursor.execute('INSERT INTO outside (name) VALUES ("current")')
-    db.commit()
-    db.close()
-    if args.reset:
-        print('Database has been reset')
-        os.remove(logfile)
-        os.remove(alarmfile)
-        exit(0)
-    config = ConfigParser()
-    config.read('/etc/gsm.conf')
-
-    IN_RC = 17       # Input pin
-    TEMPHI_THRESHOLD = int(config.get('temp', 'temphigh_threshold'))
-    TEMPLOW_THRESHOLD = int(config.get('temp', 'templow_threshold'))
-    PRELIGHT_THRESHOLD = int(config.get('light', 'prelight_threshold'))
-    HIDLIGHT_THRESHOLD = int(config.get('light', 'hidlight_threshold'))
-    DARK_THRESHOLD = int(config.get('light', 'dark_threshold'))
-    PRELIGHT_START = datetime.strptime(config.get('light', 'prelight_start'), '%H:%M').time()
-    HIDLIGHT_START = datetime.strptime(config.get('light', 'hidlight_start'), '%H:%M').time()
-    HIDLIGHT_STOP = datetime.strptime(config.get('light', 'hidlight_stop'), '%H:%M').time()
-    PRELIGHT_STOP = datetime.strptime(config.get('light', 'prelight_stop'), '%H:%M').time()
-    DARK_START = datetime.strptime(config.get('light', 'dark_start'), '%H:%M').time()
-    DARK_STOP = datetime.strptime(config.get('light', 'dark_stop'), '%H:%M').time()
-
-    logfile = config.get('general', 'logfile')
-    alarmfile = config.get('general', 'alarmfile')
-    weather_api = config.get('general', 'openweather_api')
-    weather_zip = config.get('general', 'openweather_zipcode')
-    dbfile = config.get('general', 'db')
-    logfile = config.get('general', 'logfile')
-    alarmfile = config.get('general', 'alarmfile')
-
-    if args.debug:
-        loglevel = "DEBUG"
-    elif args.info:
-        loglevel = "INFO"
-    else:
-        loglevel = "WARNING"
-
-    if not args.daemon:
-        log.configure(
-            handlers=[dict(sink=sys.stdout, level=loglevel, backtrace=True, format='<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>'),
-                      dict(sink=logfile, level="INFO", enqueue=True, serialize=False, rotation="1 MB", retention="14 days", compression="gz")],
-            levels=[dict(name="STARTUP", no=38, icon="¤", color="<yellow>")], extra={"common_to_all": "default"}, activation=[("my_module.secret", False), ("another_library.module", True)])
-    else:
-        log.configure(
-            handlers=[dict(sink=sys.stderr, level="CRITICAL", backtrace=True, format='<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>'),
-                      dict(sink=logfile, level="INFO", enqueue=True, serialize=False, rotation="1 MB", retention="14 days", compression="gz")],
-            levels=[dict(name="STARTUP", no=38, icon="¤", color="<yellow>")], extra={"common_to_all": "default"}, activation=[("my_module.secret", False), ("another_library.module", True)])
-
     outside_weather = {}
     pidfile = pid.PidFile('gsm')
     try:
@@ -349,9 +350,3 @@ def main():
             log.debug('New Outdoor weather information recieved')
             get_outside_weather()
         sleep(1)
-
-if args.daemon:
-    with daemon.DaemonContext():
-        main()
-else:
-    main()
