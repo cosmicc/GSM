@@ -34,7 +34,6 @@ def signal_handler(signal, frame):
     global main_stop_event
     log.warning(f'Termination signal [{signals[signal]}] recieved. Exiting.')
     main_stop_event = True
-    pidfile.close()
     exit(0)
 
 
