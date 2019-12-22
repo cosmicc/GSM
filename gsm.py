@@ -55,50 +55,6 @@ GPIO.setmode(GPIO.BCM)
 boardled = Led('status')
 boardled.ledoff()
 
-config = ConfigParser()
-config.read('/etc/gsm.conf')
-
-IN_RC = 17       # Input pin
-TEMPHI_THRESHOLD = int(config.get('temp', 'temphigh_threshold'))
-TEMPLOW_THRESHOLD = int(config.get('temp', 'templow_threshold'))
-PRELIGHT_THRESHOLD = int(config.get('light', 'prelight_threshold'))
-HIDLIGHT_THRESHOLD = int(config.get('light', 'hidlight_threshold'))
-DARK_THRESHOLD = int(config.get('light', 'dark_threshold'))
-PRELIGHT_START = datetime.strptime(config.get('light', 'prelight_start'), '%H:%M').time()
-HIDLIGHT_START = datetime.strptime(config.get('light', 'hidlight_start'), '%H:%M').time()
-HIDLIGHT_STOP = datetime.strptime(config.get('light', 'hidlight_stop'), '%H:%M').time()
-PRELIGHT_STOP = datetime.strptime(config.get('light', 'prelight_stop'), '%H:%M').time()
-DARK_START = datetime.strptime(config.get('light', 'dark_start'), '%H:%M').time()
-DARK_STOP = datetime.strptime(config.get('light', 'dark_stop'), '%H:%M').time()
-
-logfile = config.get('general', 'logfile')
-alarmfile = config.get('general', 'alarmfile')
-weather_api = config.get('general', 'openweather_api')
-weather_zip = config.get('general', 'openweather_zipcode')
-dbfile = config.get('general', 'db')
-logfile = config.get('general', 'logfile')
-alarmfile = config.get('general', 'alarmfile')
-
-if args.debug:
-    loglevel = "DEBUG"
-elif args.info:
-    loglevel = "INFO"
-else:
-    loglevel = "WARNING"
-
-if not args.daemon:
-    log.configure(
-        handlers=[dict(sink=sys.stdout, level=loglevel, backtrace=True, format='<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>'),
-                  dict(sink=logfile, level="INFO", enqueue=True, serialize=False, rotation="1 MB", retention="14 days", compression="gz")],
-        levels=[dict(name="STARTUP", no=38, icon="¤", color="<yellow>")], extra={"common_to_all": "default"}, activation=[("my_module.secret", False), ("another_library.module", True)])
-else:
-    log.configure(
-        handlers=[dict(sink=sys.stderr, level="CRITICAL", backtrace=True, format='<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>'),
-                  dict(sink=logfile, level="INFO", enqueue=True, serialize=False, rotation="1 MB", retention="14 days", compression="gz")],
-        levels=[dict(name="STARTUP", no=38, icon="¤", color="<yellow>")], extra={"common_to_all": "default"}, activation=[("my_module.secret", False), ("another_library.module", True)])
-
-outside_weather = {}
-
 if args.reset:
     os.remove(dbfile)
 
@@ -228,8 +184,50 @@ def get_outside_weather():
         dbupdate(f'''UPDATE outside SET timestamp = '{ow["dt"]}', tempnow = {ow["main"]["temp"]}, temphi = {ow["main"]["temp_max"]}, templow = {ow["main"]["temp_min"]}, humidity = {ow["main"]["humidity"]}, weather = '{ow["weather"][0]["description"]}', sunrise = {ow["sys"]["sunrise"]}, sunset = {ow["sys"]["sunset"]} WHERE name = "current"''')
 
 
-
 def main():
+    config = ConfigParser()
+    config.read('/etc/gsm.conf')
+
+    IN_RC = 17       # Input pin
+    TEMPHI_THRESHOLD = int(config.get('temp', 'temphigh_threshold'))
+    TEMPLOW_THRESHOLD = int(config.get('temp', 'templow_threshold'))
+    PRELIGHT_THRESHOLD = int(config.get('light', 'prelight_threshold'))
+    HIDLIGHT_THRESHOLD = int(config.get('light', 'hidlight_threshold'))
+    DARK_THRESHOLD = int(config.get('light', 'dark_threshold'))
+    PRELIGHT_START = datetime.strptime(config.get('light', 'prelight_start'), '%H:%M').time()
+    HIDLIGHT_START = datetime.strptime(config.get('light', 'hidlight_start'), '%H:%M').time()
+    HIDLIGHT_STOP = datetime.strptime(config.get('light', 'hidlight_stop'), '%H:%M').time()
+    PRELIGHT_STOP = datetime.strptime(config.get('light', 'prelight_stop'), '%H:%M').time()
+    DARK_START = datetime.strptime(config.get('light', 'dark_start'), '%H:%M').time()
+    DARK_STOP = datetime.strptime(config.get('light', 'dark_stop'), '%H:%M').time()
+
+    logfile = config.get('general', 'logfile')
+    alarmfile = config.get('general', 'alarmfile')
+    weather_api = config.get('general', 'openweather_api')
+    weather_zip = config.get('general', 'openweather_zipcode')
+    dbfile = config.get('general', 'db')
+    logfile = config.get('general', 'logfile')
+    alarmfile = config.get('general', 'alarmfile')
+
+    if args.debug:
+        loglevel = "DEBUG"
+    elif args.info:
+        loglevel = "INFO"
+    else:
+        loglevel = "WARNING"
+
+    if not args.daemon:
+        log.configure(
+            handlers=[dict(sink=sys.stdout, level=loglevel, backtrace=True, format='<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>'),
+                      dict(sink=logfile, level="INFO", enqueue=True, serialize=False, rotation="1 MB", retention="14 days", compression="gz")],
+            levels=[dict(name="STARTUP", no=38, icon="¤", color="<yellow>")], extra={"common_to_all": "default"}, activation=[("my_module.secret", False), ("another_library.module", True)])
+    else:
+        log.configure(
+            handlers=[dict(sink=sys.stderr, level="CRITICAL", backtrace=True, format='<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>'),
+                      dict(sink=logfile, level="INFO", enqueue=True, serialize=False, rotation="1 MB", retention="14 days", compression="gz")],
+            levels=[dict(name="STARTUP", no=38, icon="¤", color="<yellow>")], extra={"common_to_all": "default"}, activation=[("my_module.secret", False), ("another_library.module", True)])
+
+    outside_weather = {}
     pidfile = pid.PidFile('gsm')
     try:
         pidfile.create()
