@@ -55,6 +55,30 @@ GPIO.setmode(GPIO.BCM)
 boardled = Led('status')
 boardled.ledoff()
 
+config = ConfigParser()
+config.read('/etc/gsm.conf')
+
+IN_RC = 17       # Input pin
+TEMPHI_THRESHOLD = int(config.get('temp', 'temphigh_threshold'))
+TEMPLOW_THRESHOLD = int(config.get('temp', 'templow_threshold'))
+PRELIGHT_THRESHOLD = int(config.get('light', 'prelight_threshold'))
+HIDLIGHT_THRESHOLD = int(config.get('light', 'hidlight_threshold'))
+DARK_THRESHOLD = int(config.get('light', 'dark_threshold'))
+PRELIGHT_START = datetime.strptime(config.get('light', 'prelight_start'), '%H:%M').time()
+HIDLIGHT_START = datetime.strptime(config.get('light', 'hidlight_start'), '%H:%M').time()
+HIDLIGHT_STOP = datetime.strptime(config.get('light', 'hidlight_stop'), '%H:%M').time()
+PRELIGHT_STOP = datetime.strptime(config.get('light', 'prelight_stop'), '%H:%M').time()
+DARK_START = datetime.strptime(config.get('light', 'dark_start'), '%H:%M').time()
+DARK_STOP = datetime.strptime(config.get('light', 'dark_stop'), '%H:%M').time()
+
+logfile = config.get('general', 'logfile')
+alarmfile = config.get('general', 'alarmfile')
+weather_api = config.get('general', 'openweather_api')
+weather_zip = config.get('general', 'openweather_zipcode')
+dbfile = config.get('general', 'db')
+logfile = config.get('general', 'logfile')
+alarmfile = config.get('general', 'alarmfile')
+
 if args.reset:
     os.remove(dbfile)
 
@@ -82,30 +106,6 @@ if args.reset:
     os.remove(logfile)
     os.remove(alarmfile)
     exit(0)
-
-config = ConfigParser()
-config.read('/etc/gsm.conf')
-
-IN_RC = 17       # Input pin
-TEMPHI_THRESHOLD = int(config.get('temp', 'temphigh_threshold'))
-TEMPLOW_THRESHOLD = int(config.get('temp', 'templow_threshold'))
-PRELIGHT_THRESHOLD = int(config.get('light', 'prelight_threshold'))
-HIDLIGHT_THRESHOLD = int(config.get('light', 'hidlight_threshold'))
-DARK_THRESHOLD = int(config.get('light', 'dark_threshold'))
-PRELIGHT_START = datetime.strptime(config.get('light', 'prelight_start'), '%H:%M').time()
-HIDLIGHT_START = datetime.strptime(config.get('light', 'hidlight_start'), '%H:%M').time()
-HIDLIGHT_STOP = datetime.strptime(config.get('light', 'hidlight_stop'), '%H:%M').time()
-PRELIGHT_STOP = datetime.strptime(config.get('light', 'prelight_stop'), '%H:%M').time()
-DARK_START = datetime.strptime(config.get('light', 'dark_start'), '%H:%M').time()
-DARK_STOP = datetime.strptime(config.get('light', 'dark_stop'), '%H:%M').time()
-
-logfile = config.get('general', 'logfile')
-alarmfile = config.get('general', 'alarmfile')
-weather_api = config.get('general', 'openweather_api')
-weather_zip = config.get('general', 'openweather_zipcode')
-dbfile = config.get('general', 'db')
-logfile = config.get('general', 'logfile')
-alarmfile = config.get('general', 'alarmfile')
 
 if args.debug:
     loglevel = "DEBUG"
@@ -350,3 +350,6 @@ def main():
             log.debug('New Outdoor weather information recieved')
             get_outside_weather()
         sleep(1)
+
+if __name__ == '__main__':
+    main()
