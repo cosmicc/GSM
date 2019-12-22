@@ -350,4 +350,5 @@ def main():
             get_outside_weather()
         sleep(1)
 
-print(__name__)
+if __name__ == '__main__':
+    main()
