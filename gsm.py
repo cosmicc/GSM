@@ -231,14 +231,14 @@ def get_outside_weather():
 
 def main():
     pidfile = pid.PidFile('gsm')
-        try:
-            pidfile.create()
-        except pid.PidFileAlreadyLockedError:
-            log.error('GSM is already running')
-            exit(1)
-        except:
-            log.exception('PID file error:')
-            exit(1)
+    try:
+        pidfile.create()
+    except pid.PidFileAlreadyLockedError:
+        log.error('GSM is already running')
+        exit(1)
+    except:
+        log.exception('PID file error:')
+        exit(1)
     log.log('STARTUP', 'GSM is starting up')
 
     log.debug('Starting broadcast thread')
