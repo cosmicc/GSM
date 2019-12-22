@@ -38,7 +38,10 @@ def signal_handler(signal, frame):
 
 
 pidfile = pid.PidFile('gsm')
-pidfile.create()
+try:
+    pidfile.create()
+except pid.PidFileAlreadyLockedError:
+    log.error('GSM is already running')
 
 signal.signal(signal.SIGTERM, signal_handler)  # Graceful Shutdown
 signal.signal(signal.SIGHUP, signal_handler)  # Reload/Restart
