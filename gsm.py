@@ -349,3 +349,5 @@ def main():
             log.debug('New Outdoor weather information recieved')
             get_outside_weather()
         sleep(1)
+
+print(__name__)
