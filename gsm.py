@@ -1,6 +1,7 @@
 #!/usr/bin/env python3.8
 
 import argparse
+import daemon
 import json
 import os
 import signal
@@ -49,7 +50,7 @@ signal.signal(signal.SIGINT, signal_handler)  # Hard Exit
 signal.signal(signal.SIGQUIT, signal_handler)  # Hard Exit
 
 parser = argparse.ArgumentParser(prog='GSM')
-parser.add_argument('-c', '--console', action='store_true', help='supress logging output to console. default: error logging')
+parser.add_argument('--daemon', action='store_true', help='daemon mode')
 parser.add_argument('-d', '--debug', action='store_true', help='extra verbose output (debug)')
 parser.add_argument('-i', '--info', action='store_true', help='verbose output (info)')
 parser.add_argument('-r', '--reset', action='store_true', help='reset database')
@@ -91,7 +92,7 @@ elif args.info:
 else:
     loglevel = "WARNING"
 
-if args.console:
+if not args.daemon:
     log.configure(
         handlers=[dict(sink=sys.stdout, level=loglevel, backtrace=True, format='<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>'),
                   dict(sink=logfile, level="INFO", enqueue=True, serialize=False, rotation="1 MB", retention="14 days", compression="gz")],
@@ -131,16 +132,6 @@ if args.reset:
     os.remove(logfile)
     os.remove(alarmfile)
     exit(0)
-
-log.log('STARTUP', 'GSM is starting up')
-
-log.debug('Starting broadcast thread')
-bcast_thread = threading.Thread(name='broadcast', target=bcast, daemon=True)
-bcast_thread.start()
-
-log.debug('Starting web thread')
-web_thread = threading.Thread(name='web_thread', target=web, daemon=True)
-web_thread.start()
 
 
 def dbupdate(cmd):
@@ -243,106 +234,124 @@ def get_outside_weather():
         dbupdate(f'''UPDATE outside SET timestamp = '{ow["dt"]}', tempnow = {ow["main"]["temp"]}, temphi = {ow["main"]["temp_max"]}, templow = {ow["main"]["temp_min"]}, humidity = {ow["main"]["humidity"]}, weather = '{ow["weather"][0]["description"]}', sunrise = {ow["sys"]["sunrise"]}, sunset = {ow["sys"]["sunset"]} WHERE name = "current"''')
 
 
-onalarm = timer() - 3600
-offalarm = timer() - 3600
-tempalarm = timer() - 3600
-oweather = timer() - 3600
 
-tempsensor = tempSensor()
+def main():
+    log.log('STARTUP', 'GSM is starting up')
 
-lastlight = None
-lastlighttimer = timer() - 300
-lastlighttimer2 = timer() - 300
-lastdatatimer = timer()
+    log.debug('Starting broadcast thread')
+    bcast_thread = threading.Thread(name='broadcast', target=bcast, daemon=True)
+    bcast_thread.start()
 
-log.debug('Starting main loop')
+    log.debug('Starting web thread')
+    web_thread = threading.Thread(name='web_thread', target=web, daemon=True)
+    web_thread.start()
 
-while not main_stop_event:
-    times = timer()
-    b = []
-    temp, humidity = tempsensor.check()
-    while timer() - times < 60:
-        a = pc_read(IN_RC)
-        b.append(a)
+    onalarm = timer() - 3600
+    offalarm = timer() - 3600
+    tempalarm = timer() - 3600
+    oweather = timer() - 3600
+
+    tempsensor = tempSensor()
+
+    lastlight = None
+    lastlighttimer = timer() - 300
+    lastlighttimer2 = timer() - 300
+    lastdatatimer = timer()
+
+    log.debug('Starting main loop')
+
+    while not main_stop_event:
+        times = timer()
+        b = []
+        temp, humidity = tempsensor.check()
+        while timer() - times < 60:
+            a = pc_read(IN_RC)
+            b.append(a)
+            sleep(1)
+        if lastlight is None:
+            lastlight = int(mean(b))
+        light = int(mean(b))
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+        if lastlight >= 200000 and light < 200000 and timer() - lastlighttimer > 300:
+            lastlighttimer = timer()
+            dbupdate(f'''UPDATE general SET timestamp = '{timestamp}', light = {light}, temp = {temp}, humidity = {humidity} WHERE name = "laston"''')
+            log.info(f'Light ON has been detected')
+        if lastlight < 200000 and light >= 200000 and timer() - lastlighttimer2 > 300:
+            lastlighttimer = timer()
+            dbupdate(f'''UPDATE general SET timestamp = '{timestamp}', light = {light}, temp = {temp}, humidity = {humidity} WHERE name = "lastoff"''')
+
+            s = dbselect('''SELECT timestamp FROM general WHERE name = "laston"''')
+            so = datetime.strptime(s[0][0], '%Y-%m-%d %H:%M')
+            eo = datetime.strptime(timestamp, '%Y-%m-%d %H:%M')
+            if so is not None and eo is not None:
+                td = eo - so
+                lh = round(td.total_seconds() / 3600, 1)
+            else:
+                lh = 'N/A'
+            log.warning(lh)
+            dbupdate(f'''UPDATE general SET temp = {lh} WHERE name = "lighthours"''')
+            log.info(f'Light OFF has been detected. Total Light hours: {lh}')
+        lastlight = light
+        nlight = int(normalizeit(light))
+        log.debug(f'Light Values Recieved: {light} ({nlight}/100)')
+
+        dbupdate(f"""UPDATE general SET timestamp = '{timestamp}', light = {light}, temp = {temp}, humidity = {humidity} WHERE name = 'livedata'""")
+        # mdb.commit()
+        log.debug('Data saved in livedata database')
+
+        if timer() - lastdatatimer > 300:
+            lastdatatimer = timer()
+            dbupdate(f'''INSERT INTO data(timestamp, light, temp, humidity) VALUES ('{timestamp}',{light},{temp},{humidity})''')
+            log.debug('Data saved in longterm database')
+
+        if is_time_between(datetime.now().time(), PRELIGHT_START, PRELIGHT_STOP) and light > PRELIGHT_THRESHOLD:  # dawn start
+            if timer() - onalarm > 3600:
+                onalarm = timer()
+                log.warning(f'ALARM: Lights should be on but are NOT ON lightvalue: {light} ({nlight}/100)')
+                dbupdate(f'''INSERT INTO alarms(timestamp, value, type) VALUES ('{timestamp}',{light},'light not on')''')
+                with open(alarmfile, "a") as myfile:
+                    myfile.write(f"{timestamp}: Lights should be on but are NOT ON lightvalue: {light} ({nlight}/100)\n")
+                # sendsms(f'ALARM: Lights should be on but are NOT ON lightvalue: {light} ({nlight}/100)')
+        elif is_time_between(datetime.now().time(), HIDLIGHT_START, HIDLIGHT_STOP) and light > HIDLIGHT_THRESHOLD:  # day start (hids on)
+            if timer() - onalarm > 3600:
+                onalarm = timer()
+                log.warning(f'ALARM: Lights are on but weak. lightvalue: {light} ({nlight}/100)')
+                dbupdate(f'''INSERT INTO alarms(timestamp, value, type) VALUES ('{timestamp}',{light},'light too low')''')
+                with open(alarmfile, "a") as myfile:
+                    myfile.write(f"{timestamp}: Lights are on but weak. lightvalue: {light} ({nlight}/100)\n")
+                # sendsms(f'ALARM: Lights are on but WEAK. lightvalue: {light} ({nlight}/100)')
+        elif is_time_between(datetime.now().time(), DARK_START, DARK_STOP) and light < DARK_THRESHOLD:  # dusk start (hids off)
+            if timer() - offalarm > 3600:
+                offalarm = timer()
+                log.warning(f'ALARM: Lights should be off but ARE STILL ON lightvalue: {light} ({nlight}/100)')
+                dbupdate(f'''INSERT INTO alarms(timestamp, value, type) VALUES ('{timestamp}',{light},'light not off')''')
+                with open(alarmfile, "a") as myfile:
+                    myfile.write(f"{timestamp}: Lights should be off but ARE STILL ON lightvalue: {light} ({nlight}/100)\n")
+                # sendsms(f'ALARM: Lights should be off but ARE STILL ON lightvalue: {light} ({nlight}/100)')
+        if tempsensor.temp > TEMPHI_THRESHOLD:
+            if timer() - tempalarm > 3600:
+                tempalarm = timer()
+                log.warning(f'ALARM: Temp is OVER limit: {tempsensor.temp} F')
+                dbupdate(f'''INSERT INTO alarms(timestamp, value, type) VALUES ('{timestamp}',{tempsensor.temp},'over temp')''')
+                with open(alarmfile, "a") as myfile:
+                    myfile.write(f"{timestamp}: Temp is OVER limit: {tempsensor.temp} F\n")
+                # sendsms(f'ALARM: Lights should be off but ARE STILL ON lightvalue: {light} ({nlight}/100)')
+        elif tempsensor.temp < TEMPLOW_THRESHOLD and tempsensor.temp != 0:
+            if timer() - tempalarm > 3600:
+                tempalarm = timer()
+                log.warning(f'ALARM: Temp is UNDER limit: {tempsensor.temp} F')
+                dbupdate(f'''INSERT INTO alarms(timestamp, value, type) VALUES ('{timestamp}',{tempsensor.temp},'under temp')''')
+                with open(alarmfile, "a") as myfile:
+                    myfile.write(f"{timestamp}: Temp is UNDER limit: {tempsensor.temp} F\n")
+                # sendsms(f'ALARM: Lights should be off but ARE STILL ON lightvalue: {light} ({nlight}/100)')
+        if timer() - oweather > 3600:
+            oweather = timer()
+            log.debug('New Outdoor weather information recieved')
+            get_outside_weather()
         sleep(1)
-    if lastlight is None:
-        lastlight = int(mean(b))
-    light = int(mean(b))
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-    if lastlight >= 200000 and light < 200000 and timer() - lastlighttimer > 300:
-        lastlighttimer = timer()
-        dbupdate(f'''UPDATE general SET timestamp = '{timestamp}', light = {light}, temp = {temp}, humidity = {humidity} WHERE name = "laston"''')
-        log.info(f'Light ON has been detected')
-    if lastlight < 200000 and light >= 200000 and timer() - lastlighttimer2 > 300:
-        lastlighttimer = timer()
-        dbupdate(f'''UPDATE general SET timestamp = '{timestamp}', light = {light}, temp = {temp}, humidity = {humidity} WHERE name = "lastoff"''')
 
-        s = dbselect('''SELECT timestamp FROM general WHERE name = "laston"''')
-        so = datetime.strptime(s[0][0], '%Y-%m-%d %H:%M')
-        eo = datetime.strptime(timestamp, '%Y-%m-%d %H:%M')
-        if so is not None and eo is not None:
-            td = eo - so
-            lh = round(td.total_seconds() / 3600, 1)
-        else:
-            lh = 'N/A'
-        log.warning(lh)
-        dbupdate(f'''UPDATE general SET temp = {lh} WHERE name = "lighthours"''')
-        log.info(f'Light OFF has been detected. Total Light hours: {lh}')
-    lastlight = light
-    nlight = int(normalizeit(light))
-    log.debug(f'Light Values Recieved: {light} ({nlight}/100)')
-
-    dbupdate(f"""UPDATE general SET timestamp = '{timestamp}', light = {light}, temp = {temp}, humidity = {humidity} WHERE name = 'livedata'""")
-    # mdb.commit()
-    log.debug('Data saved in livedata database')
-
-    if timer() - lastdatatimer > 300:
-        lastdatatimer = timer()
-        dbupdate(f'''INSERT INTO data(timestamp, light, temp, humidity) VALUES ('{timestamp}',{light},{temp},{humidity})''')
-        log.debug('Data saved in longterm database')
-
-    if is_time_between(datetime.now().time(), PRELIGHT_START, PRELIGHT_STOP) and light > PRELIGHT_THRESHOLD:  # dawn start
-        if timer() - onalarm > 3600:
-            onalarm = timer()
-            log.warning(f'ALARM: Lights should be on but are NOT ON lightvalue: {light} ({nlight}/100)')
-            dbupdate(f'''INSERT INTO alarms(timestamp, value, type) VALUES ('{timestamp}',{light},'light not on')''')
-            with open(alarmfile, "a") as myfile:
-                myfile.write(f"{timestamp}: Lights should be on but are NOT ON lightvalue: {light} ({nlight}/100)\n")
-            # sendsms(f'ALARM: Lights should be on but are NOT ON lightvalue: {light} ({nlight}/100)')
-    elif is_time_between(datetime.now().time(), HIDLIGHT_START, HIDLIGHT_STOP) and light > HIDLIGHT_THRESHOLD:  # day start (hids on)
-        if timer() - onalarm > 3600:
-            onalarm = timer()
-            log.warning(f'ALARM: Lights are on but weak. lightvalue: {light} ({nlight}/100)')
-            dbupdate(f'''INSERT INTO alarms(timestamp, value, type) VALUES ('{timestamp}',{light},'light too low')''')
-            with open(alarmfile, "a") as myfile:
-                myfile.write(f"{timestamp}: Lights are on but weak. lightvalue: {light} ({nlight}/100)\n")
-            # sendsms(f'ALARM: Lights are on but WEAK. lightvalue: {light} ({nlight}/100)')
-    elif is_time_between(datetime.now().time(), DARK_START, DARK_STOP) and light < DARK_THRESHOLD:  # dusk start (hids off)
-        if timer() - offalarm > 3600:
-            offalarm = timer()
-            log.warning(f'ALARM: Lights should be off but ARE STILL ON lightvalue: {light} ({nlight}/100)')
-            dbupdate(f'''INSERT INTO alarms(timestamp, value, type) VALUES ('{timestamp}',{light},'light not off')''')
-            with open(alarmfile, "a") as myfile:
-                myfile.write(f"{timestamp}: Lights should be off but ARE STILL ON lightvalue: {light} ({nlight}/100)\n")
-            # sendsms(f'ALARM: Lights should be off but ARE STILL ON lightvalue: {light} ({nlight}/100)')
-    if tempsensor.temp > TEMPHI_THRESHOLD:
-        if timer() - tempalarm > 3600:
-            tempalarm = timer()
-            log.warning(f'ALARM: Temp is OVER limit: {tempsensor.temp} F')
-            dbupdate(f'''INSERT INTO alarms(timestamp, value, type) VALUES ('{timestamp}',{tempsensor.temp},'over temp')''')
-            with open(alarmfile, "a") as myfile:
-                myfile.write(f"{timestamp}: Temp is OVER limit: {tempsensor.temp} F\n")
-            # sendsms(f'ALARM: Lights should be off but ARE STILL ON lightvalue: {light} ({nlight}/100)')
-    elif tempsensor.temp < TEMPLOW_THRESHOLD and tempsensor.temp != 0:
-        if timer() - tempalarm > 3600:
-            tempalarm = timer()
-            log.warning(f'ALARM: Temp is UNDER limit: {tempsensor.temp} F')
-            dbupdate(f'''INSERT INTO alarms(timestamp, value, type) VALUES ('{timestamp}',{tempsensor.temp},'under temp')''')
-            with open(alarmfile, "a") as myfile:
-                myfile.write(f"{timestamp}: Temp is UNDER limit: {tempsensor.temp} F\n")
-            # sendsms(f'ALARM: Lights should be off but ARE STILL ON lightvalue: {light} ({nlight}/100)')
-    if timer() - oweather > 3600:
-        oweather = timer()
-        log.debug('New Outdoor weather information recieved')
-        get_outside_weather()
-    sleep(1)
+if args.daemon:
+    with daemon.DaemonContext():
+        main()
+else:
+    main()
