@@ -63,7 +63,7 @@
             <div class="tempdiv">
                 <div class="divRow">
                     <div class="righttext2">Current Moon:</div>
-                    <div class="t2">&nbsp;&nbsp;{{ getastdata().nextphase[0] }}</div>
+                    <div class="t2">&nbsp;&nbsp;{{ getastdata().currentphase[0] }}</div>
                 </div>
                 <div class="divRow">
                     <div class="righttext2">Next Moon:</div>
@@ -82,7 +82,7 @@
     </div>
 </div>
 <br>
-{{ getastdata() }}
+
 <h2>Last Secondary on:</h2> <h3>{{ convtime(getlaston()[0]) }}</h3> <h2>Temp:</h2> <h3>{{ getlaston()[2] }}&#176;F</h3>  <h2>Humidity:</h2> <h3>{{ getlaston()[3] }}%</h3>
 <br>
 <h2>Last Main on:</h2> <h3>{{ convtime(getlasthidon()[0]) }}</h3> <h2>Temp:</h2> <h3>{{ getlasthidon()[2] }}&#176;F</h3>  <h2>Humidity:</h2> <h3>{{ getlasthidon()[3] }}%</h3>
