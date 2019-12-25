@@ -1,7 +1,7 @@
 <html>
 <head>
 <meta name="description" content="Environment Sensor" />
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/gsm.css') }}?v1.55">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/gsm.css') }}?v1.56">
 <script src="{{url_for('static',filename='js/jquery-1.2.6.js')}}"></script>
 <script type="text/javascript">
     var pageLoader = setInterval(function(){
@@ -56,7 +56,7 @@
                 <div class="divRow">
                     <div class="righttext2">Today Low:</div>
                     <div class="t2">&nbsp;&nbsp;{{ getweatherdata()[2] }}&#176;F</div>
-
+                </div>
             </div>
         </div>
         <div class="splitright">
@@ -84,7 +84,7 @@
             </div>
         </div>
     </div>
-
+</div>
 <br>
 <h2>Last Secondary on:</h2> <h3>{{ convtime(getlaston()[0]) }}</h3> <h2>Temp:</h2> <h3>{{ getlaston()[2] }}&#176;F</h3>  <h2>Humidity:</h2> <h3>{{ getlaston()[3] }}%</h3>
 <br>
