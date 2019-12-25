@@ -1,7 +1,7 @@
 <html>
 <head>
 <meta name="description" content="Environment Sensor" />
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/gsm.css') }}?v1.59">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/gsm.css') }}?v1.60">
 <script src="{{url_for('static',filename='js/jquery-1.2.6.js')}}"></script>
 <script type="text/javascript">
     var pageLoader = setInterval(function(){
@@ -83,6 +83,47 @@
 </div>
 <br>
 
+<div class="splitdiv">
+    <div class="splitRow">
+        <div class="split1">
+            <div class="tempdiv">
+                <div class="divRow">
+                    <div class="lefttext">Current Room Temp:</div>
+                    <div class="t1">&nbsp;&nbsp;{{ getlivedata()['temp'] }}&#176;F</div>
+                    <div class="righttext">Last Hour:</div>
+                    <div class="t1">&nbsp;&nbsp;{{ getlivedata()['ttrend'] }}&#176;F</div>
+           </div>
+        </div>
+        <div class="split1">
+            <div class="tempdiv">
+                <div class="divRow">
+                    <div class="lefttext">Current Room Temp:</div>
+                    <div class="t1">&nbsp;&nbsp;{{ getlivedata()['temp'] }}&#176;F</div>
+                    <div class="righttext">Last Hour:</div>
+                    <div class="t1">&nbsp;&nbsp;{{ getlivedata()['ttrend'] }}&#176;F</div>
+           </div>
+        </div>
+        <div class="split1">
+            <div class="tempdiv">
+                <div class="divRow">
+                    <div class="lefttext">Current Room Temp:</div>
+                    <div class="t1">&nbsp;&nbsp;{{ getlivedata()['temp'] }}&#176;F</div>
+                    <div class="righttext">Last Hour:</div>
+                    <div class="t1">&nbsp;&nbsp;{{ getlivedata()['ttrend'] }}&#176;F</div>
+           </div>
+        </div>
+        <div class="split1">
+            <div class="tempdiv">
+                <div class="divRow">
+                    <div class="lefttext">Current Room Temp:</div>
+                    <div class="t1">&nbsp;&nbsp;{{ getlivedata()['temp'] }}&#176;F</div>
+                    <div class="righttext">Last Hour:</div>
+                    <div class="t1">&nbsp;&nbsp;{{ getlivedata()['ttrend'] }}&#176;F</div>
+           </div>
+        </div>
+    </div>
+</div>
+
 <h2>Last Secondary on:</h2> <h3>{{ convtime(getlaston()[0]) }}</h3> <h2>Temp:</h2> <h3>{{ getlaston()[2] }}&#176;F</h3>  <h2>Humidity:</h2> <h3>{{ getlaston()[3] }}%</h3>
 <br>
 <h2>Last Main on:</h2> <h3>{{ convtime(getlasthidon()[0]) }}</h3> <h2>Temp:</h2> <h3>{{ getlasthidon()[2] }}&#176;F</h3>  <h2>Humidity:</h2> <h3>{{ getlasthidon()[3] }}%</h3>
@@ -92,10 +133,8 @@
 <h2>Last Secondary off:</h2> <h3>{{ convtime(getlastoff()[0]) }}</h3> <h2>Temp:</h2> <h3>{{ getlastoff()[2] }}&#176;F</h3>  <h2>Humidity:</h2> <h3>{{ getlastoff()[3] }}%</h3>
 <br>
 <h2>Last Light Cycle:</h2> <h3>{{ lighthours }} Hours</h3>
-<br>
-<h2>Next Moon Phase:</h2> <h3>{{ nextmoon[0] }}</h3> in <h3>{{ getmoontime()[0] }} Days</h3> on <h3>{{ convdate(nextmoon[1].__str__()) }}</h3>
-<br>
-<h2>Next Full Moon in</h2> <h3>{{ getmoontime()[1] }} Days</h3> on <h3>{{ convdate(getastdata().moondata['Full Moon'].__str__())}}</h3>
+
+
 <br>
 {% if hasalarms %}
 <h2>Alerts:</h2>
