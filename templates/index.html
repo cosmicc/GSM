@@ -1,7 +1,7 @@
 <html>
 <head>
 <meta name="description" content="Environment Sensor" />
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/gsm.css') }}?v1.49">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/gsm.css') }}?v1.50">
 <script src="{{url_for('static',filename='js/jquery-1.2.6.js')}}"></script>
 <script type="text/javascript">
     var pageLoader = setInterval(function(){
@@ -20,15 +20,15 @@
 <div class="tempdiv">
 <div class="divRow">
     <div class="lefttext">Current Room Temp:</div>
-    <div class="temp">&nbsp;&nbsp;{{ getlivedata()['temp'] }}&#176;F</div>
+    <div class="t1">&nbsp;&nbsp;{{ getlivedata()['temp'] }}&#176;F</div>
     <div class="righttext">Last Hour:</div>
-    <div class="trend">&nbsp;&nbsp;{{ getlivedata()['ttrend'] }}&#176;F</div>
+    <div class="t1">&nbsp;&nbsp;{{ getlivedata()['ttrend'] }}&#176;F</div>
 </div>
 <div class="divRow">
     <div class="lefttext">Current Room Humidity:</div>
-    <div class="temp">&nbsp;&nbsp;{{ getlivedata()['humidity'] }}%</div>
+    <div class="t1">&nbsp;&nbsp;{{ getlivedata()['humidity'] }}%</div>
     <div class="righttext">Last Hour:</div>
-    <div class="trend">&nbsp;&nbsp;{{ getlivedata()['htrend'] }}%</div>
+    <div class="t1">&nbsp;&nbsp;{{ getlivedata()['htrend'] }}%</div>
 </div>
 </div>
 <br>
@@ -37,20 +37,20 @@
         <div class="splitleft">
             <div class="tempdiv">
                 <div class="divRow">
-                    <div class="righttext">Outdoor Conditions:</div>
-                    <div class="temp">&nbsp;&nbsp;{{ getweatherdata()[4].title() }}</div>
+                    <div class="righttext2">Outdoor Conditions:</div>
+                    <div class="t2">&nbsp;&nbsp;{{ getweatherdata()[4].title() }}</div>
                 </div>
                 <div class="divRow">
-                    <div class="righttext">Outdoor Temp:</div>
-                    <div class="temp">&nbsp;&nbsp;{{ getweatherdata()[0] }}&#176;F</div>
+                    <div class="righttext2">Outdoor Temp:</div>
+                    <div class="t2">&nbsp;&nbsp;{{ getweatherdata()[0] }}&#176;F</div>
                 </div>
                 <div class="divRow">
-                    <div class="righttext">Outdoor Humidity:</div>
-                    <div class="temp">&nbsp;&nbsp;{{ getweatherdata()[3] }}%</div>
+                    <div class="righttext2">Outdoor Humidity:</div>
+                    <div class="t2">&nbsp;&nbsp;{{ getweatherdata()[3] }}%</div>
                 </div>
                 <div class="divRow">
-                    <div class="righttext">Today High:</div>
-                    <div class="temp">&nbsp;&nbsp;{{ getweatherdata()[1] }}&#176;F</div>
+                    <div class="righttext2">Today High:</div>
+                    <div class="t2">&nbsp;&nbsp;{{ getweatherdata()[1] }}&#176;F</div>
             </div>
         </div>
     </div>
