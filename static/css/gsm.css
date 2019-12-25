@@ -73,6 +73,16 @@ h6 { font-size: 10px; margin: 0 0 0px 0; padding: 0; font-weight: normal; color:
     width:100px;
 }
 
+.righttext2
+{
+    float:left;/*fix for  buggy browsers*/
+    text-align: right;
+    display: table-column;
+    color: #f3c331;
+    font-size: 16px;
+    width:100px;
+}
+
 .t1
 {
     float:left;/*fix for  buggy browsers*/
@@ -89,7 +99,7 @@ h6 { font-size: 10px; margin: 0 0 0px 0; padding: 0; font-weight: normal; color:
     text-align: left;
     display:table-column;
     color: #FFFFFF;
-    font-size: 18px;
+    font-size: 16px;
     width:100px;
 }
 
