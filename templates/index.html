@@ -51,6 +51,10 @@
                 <div class="divRow">
                     <div class="righttext2">Today High:</div>
                     <div class="t2">&nbsp;&nbsp;{{ getweatherdata()[1] }}&#176;F</div>
+                </div>
+                <div class="divRow">
+                    <div class="righttext2">Today Low:</div>
+                    <div class="t2">&nbsp;&nbsp;{{ getweatherdata()[2] }}&#176;F</div>
             </div>
         </div>
     </div>
@@ -59,7 +63,7 @@
         </div>
     </div>
 </div>
-
+<br>
 <h2>Last Secondary on:</h2> <h3>{{ convtime(getlaston()[0]) }}</h3> <h2>Temp:</h2> <h3>{{ getlaston()[2] }}&#176;F</h3>  <h2>Humidity:</h2> <h3>{{ getlaston()[3] }}%</h3>
 <br>
 <h2>Last Main on:</h2> <h3>{{ convtime(getlasthidon()[0]) }}</h3> <h2>Temp:</h2> <h3>{{ getlasthidon()[2] }}&#176;F</h3>  <h2>Humidity:</h2> <h3>{{ getlasthidon()[3] }}%</h3>
