@@ -1,7 +1,7 @@
 <html>
 <head>
 <meta name="description" content="Environment Sensor" />
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/gsm.css') }}?v1.54">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/gsm.css') }}?v1.55">
 <script src="{{url_for('static',filename='js/jquery-1.2.6.js')}}"></script>
 <script type="text/javascript">
     var pageLoader = setInterval(function(){
@@ -55,11 +55,33 @@
                 <div class="divRow">
                     <div class="righttext2">Today Low:</div>
                     <div class="t2">&nbsp;&nbsp;{{ getweatherdata()[2] }}&#176;F</div>
+                </div>
             </div>
         </div>
     </div>
         <div class="splitright">
-            a
+            <div class="tempdiv">
+                <div class="divRow">
+                    <div class="righttext2">Current Moon:</div>
+                    <div class="t2">&nbsp;&nbsp;{{ getweatherdata()[4].title() }}</div>
+                </div>
+                <div class="divRow">
+                    <div class="righttext2">Next Moon:</div>
+                    <div class="t2">&nbsp;&nbsp;{{ nextmoon[0] }}</div>
+                </div>
+                <div class="divRow">
+                    <div class="righttext2">Next Full Moon:</div>
+                    <div class="t2">&nbsp;&nbsp;{{ getmoontime()[1] }} Days</div>
+                </div>
+                <div class="divRow">
+                    <div class="righttext2">Next New Moon:</div>
+                    <div class="t2">&nbsp;&nbsp;{{ nextmoon[0] }}</div>
+                </div>
+                <div class="divRow">
+                    <div class="righttext2">Today Low:</div>
+                    <div class="t2">&nbsp;&nbsp;{{ nextmoon[0] }}</div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
