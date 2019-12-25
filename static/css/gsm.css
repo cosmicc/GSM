@@ -64,6 +64,13 @@ h6 { font-size: 10px; margin: 0 0 0px 0; padding: 0; font-weight: normal; color:
    width:auto;
 }
 
+.divRow2
+{
+   display:table-row;
+   text-align: center;
+   width:auto;
+}
+
 .lefttext
 {
     float:left;/*fix for  buggy browsers*/
