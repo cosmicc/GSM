@@ -132,6 +132,23 @@ h6 { font-size: 10px; margin: 0 0 0px 0; padding: 0; font-weight: normal; color:
    /* border-collapse:separate;*/
 }
 
+.splitdiv2
+{
+    display: table inline;
+    width: auto;
+    position: fixed;
+    background-position: center;
+    text-align: center;
+    position: center;
+   /* border-collapse:separate;*/
+}
+
+.splitRow
+{
+   display:table-row;
+   width:auto;
+}
+
 .splitRow
 {
    display:table-row;
@@ -156,7 +173,6 @@ h6 { font-size: 10px; margin: 0 0 0px 0; padding: 0; font-weight: normal; color:
 
 .split1
 {
-    float:left;/*fix for  buggy browsers*/
     text-align: center;
     display: table-column;
     width:250px;
