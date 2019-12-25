@@ -71,11 +71,11 @@
                 </div>
                 <div class="divRow">
                     <div class="righttext2">Next Full Moon:</div>
-                    <div class="t2">&nbsp;&nbsp;{{ getmoontime()[2] }} Days ({{ convdate(getastdata().moondata['New Moon'].__str__())}})</div>
+                    <div class="t2">&nbsp;&nbsp;{{ getmoontime()[1] }} Days ({{ convdate(getastdata().moondata['Full Moon'].__str__())}})</div>
                 </div>
                 <div class="divRow">
                     <div class="righttext2">Next New Moon:</div>
-                    <div class="t2">&nbsp;&nbsp;{{ nextmoon[0] }}</div>
+                    <div class="t2">&nbsp;&nbsp;{{ getmoontime()[2] }} Days ({{ convdate(getastdata().moondata['New Moon'].__str__())}})</div>
                 </div>
             </div>
         </div>
