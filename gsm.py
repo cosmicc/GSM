@@ -13,6 +13,7 @@ from statistics import mean
 from time import sleep
 from timeit import default_timer as timer
 
+import stled
 import Adafruit_DHT
 import daemon
 import pid
@@ -34,6 +35,11 @@ def signal_handler(signal, frame):
     global main_stop_event
     log.warning(f'Termination signal [{signals[signal]}] recieved. Exiting.')
     main_stop_event = True
+    if signal == 15:
+        led.yellow()
+    else:
+        led.red()
+    led.disable()
     exit(0)
 
 
@@ -81,6 +87,8 @@ alarmfile = config.get('general', 'alarmfile')
 if args.reset:
     os.remove(dbfile)
 
+led = stled.stled()
+led.yellow()
 db = sqlite3.connect(dbfile)
 cursor = db.cursor()
 # mcursor = mdb.cursor()
@@ -154,9 +162,11 @@ class tempSensor():
 
     def check(self):
         try:
+            led.cyan()
             hum, tmp = Adafruit_DHT.read_retry(self.sensor, self.pin)
         except:
             log.error(f'Error polling temp/humidity sensor')
+            led.red()
             return (0, 0)
         else:
             log.debug(f'Temp Values Recieved: {float_trunc_1dec(tmp)}C {float_trunc_1dec(c2f(tmp))}F {self.humidity}%')
@@ -170,9 +180,11 @@ class tempSensor():
                 self.humidity = float_trunc_1dec(hum)
                 # print(self.temp, self.humidity)
                 log.debug(f'Tempurature={self.temp}*{self.units}  Humidity={self.humidity}%')
+                led.green()
                 return (self.temp, self.humidity)
             else:
                 log.warning(f'Failed getting temp/humidity sensor reading')
+                led.red()
                 return (0, 0)
 
 
@@ -259,6 +271,7 @@ def main():
     lastdatatimer = timer()
 
     log.debug('Starting main loop')
+    led.green()
 
     while not main_stop_event:
         times = timer()

@@ -1,0 +1,7 @@
+#!/usr/bin/env python3
+
+import stled
+
+led = stled.stled()
+
+led.yellow()
